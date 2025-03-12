@@ -10,14 +10,15 @@ export default async function Page({ params }: PageProps) {
   const token = params.id;
 
   const result = await db.passwordResetToken.findFirst({
-    where: {
-      token: token
-    }
-  })
+    where: { token: token },
+    include: { user: true },
+  });
 
-  if(!result) {
-    redirect("/")
+  if (!result) {
+    redirect("/");
   }
+  
+  const user = result.user;
 
-  return <AlterPasswordForm />;
+  return <AlterPasswordForm userId={user.id}/>;
 }

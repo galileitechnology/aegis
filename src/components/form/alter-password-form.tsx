@@ -7,20 +7,32 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { alterPasswordAction } from "@/utils/auth/alterPasswordAction";
 import Form from "next/form";
 import PassowordInputs from "@/components/form/password-input";
+import { useRouter } from "next/navigation";
 
-export default function AlterPasswordForm() {
+export default function AlterPasswordForm({ userId }: { userId: number }) {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setLoading(true);
+    const formData = new FormData(event.target as HTMLFormElement);
+    formData.append("userId", userId.toString());
     const result = await alterPasswordAction(formData);
 
     if (!result.success) {
       toast.error(result.message);
+      setLoading(false);
     }
 
     if (result.type === "info") {
       toast.info(result.message);
+      setLoading(false);
     }
+
+    toast.success(result.message);
+    setLoading(false);
+    router.push("/");
   };
 
   return (
@@ -30,7 +42,7 @@ export default function AlterPasswordForm() {
           <h2 className="text-2xl font-bold mb-2">Altere sua senha</h2>
           <p className="text-sm">Informe sua nova senha</p>
         </div>
-        <Form action={handleSubmit} className="flex flex-col">
+        <form onSubmit={handleSubmit} className="flex flex-col">
           <div>
             <PassowordInputs />
           </div>
@@ -46,7 +58,7 @@ export default function AlterPasswordForm() {
               )}
             </Button>
           </div>
-        </Form>
+        </form>
       </div>
     </div>
   );
