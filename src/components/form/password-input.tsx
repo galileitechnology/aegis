@@ -5,11 +5,11 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
-export default function PassowordInput() {
+export default function PassowordInputs() {
   const [showPassword, setShowPassword] = useState(false);
-  
+
   return (
-    <div className="mb-5">
+    <div>
       <Label htmlFor="password" className="mb-1">
         Senha:
       </Label>

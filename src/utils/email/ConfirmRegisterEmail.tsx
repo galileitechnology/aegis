@@ -1,20 +1,19 @@
 import { SendEmail } from "@/lib/SendEmail";
 import { RegisterEmailConfirm } from "transactional/emails/RegisterConfirm";
+import { getServerIp } from "@/utils/getServerIp";
 
 export class ConfirmRegisterEmail {
   async execute(username: string, email: string, confirmToken?: string) {
     const sendEmail = new SendEmail();
+    const serverIp = getServerIp();
+    const confirmLink = `http://${serverIp}:3000/confirmar/${confirmToken}`;
     const html = await sendEmail.getHtml(
       RegisterEmailConfirm({
         username: username,
         email: email,
-        confirmLink: `${process.env.APP_URL}/confirmar/${confirmToken}`,
+        confirmLink: confirmLink,
       })
     );
-    await sendEmail.sendEmail(
-      "rodrigoantunestutz@gmail.com",
-      "Confirme seu email",
-      html
-    );
+    await sendEmail.sendEmail(email, "Confirme seu email", html);
   }
 }

@@ -75,11 +75,9 @@ export default function Page() {
 
         <PassowordInput />
 
-        <div>
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full mt-5">
             Cadastrar
           </Button>
-        </div>
       </Form>
 
       <div className="z-10 text-gray-800/70 text-sm">

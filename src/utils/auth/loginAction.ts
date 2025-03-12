@@ -3,7 +3,6 @@
 import { signIn } from "@/auth";
 import db from "@/lib/db";
 import { Message } from "@/types/message";
-import { User } from "@/types/user";
 
 export default async function loginAction(
   formData: FormData
@@ -28,8 +27,9 @@ export default async function loginAction(
   if (confirmUser?.confirmed === false) {
     return {
       success: true,
+      type: 'info',
       message:
-        "Enviamos um e-mail de confirmação, acesse sua caixa de mensagens e confirme seu e-mail para continuar",
+        "Confirme seu-email para ter acesso ao sistema!",
         duration: 20000
     };
   }
@@ -45,6 +45,8 @@ export default async function loginAction(
     if (e.type === "CredentialsSignin") {
       return { success: false, message: "Email ou senha inválidos" };
     }
+
+    return { success: false, message: "Tente novamente mais tarde!" };
   }
 
   return { success: true, message: "Usuario Cadastrado com Sucesso" };

@@ -8,12 +8,12 @@ export default function Layout({
 }>) {
   return (
     <div>
-      {/*<Image
+      <Image
         alt="fundo tela de login"
         src={Backgroung}
-        className="fixed min-h-screen"
+        className="fixed min-h-screen z-0"
         quality={25}
-      />*/}
+      />
       <section>{children}</section>
     </div>
   );

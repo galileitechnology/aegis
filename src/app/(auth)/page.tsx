@@ -16,20 +16,28 @@ export default function Page() {
   const [formData, setFormData] = useState({
     email: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (data: FormData) => {
+    setLoading(true);
     const result = await loginAction(data);
 
     if (!result.success) {
       toast.error(result.message);
+      setLoading(false);
       return;
     }
 
-    toast.success(result.message);
+    if (result.type === "info") {
+      toast.info(result.message);
+    } else {
+      toast.success(result.message);
+    }
+    setLoading(false);
     router.push("/dashboard");
   };
   return (
@@ -56,6 +64,11 @@ export default function Page() {
         </div>
 
         <PassowordInput />
+        <div className="mb-5">
+          <Link href={"/esqueci"} className="text-xs underline">
+            Esqueci minha senha
+          </Link>
+        </div>
 
         <div>
           <Button type="submit" className="w-full cursor-pointer">
