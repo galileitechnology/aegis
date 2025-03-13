@@ -2,12 +2,9 @@ import db from "@/lib/db";
 import AlterPasswordForm from "@/components/form/alter-password-form";
 import { redirect } from "next/navigation";
 
-type PageProps = {
-  params: { id: string };
-};
-
-export default async function Page({ params }: PageProps) {
-  const token = params.id;
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const token = id;
 
   const result = await db.passwordResetToken.findFirst({
     where: { token: token },
@@ -17,8 +14,8 @@ export default async function Page({ params }: PageProps) {
   if (!result) {
     redirect("/");
   }
-  
+
   const user = result.user;
 
-  return <AlterPasswordForm userId={user.id}/>;
+  return <AlterPasswordForm userId={user.id} />;
 }

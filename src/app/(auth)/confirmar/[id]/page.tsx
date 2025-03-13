@@ -2,12 +2,9 @@ import db from "@/lib/db";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-type PageProps = {
-  params: { id: string };
-};
-
-export default async function Page({ params }: PageProps) {
-  const confirmToken = params.id;
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const confirmToken = id;
 
   const user = await db.user.findFirst({
     where: {

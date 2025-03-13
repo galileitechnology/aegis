@@ -27,10 +27,9 @@ export default async function loginAction(
   if (confirmUser?.confirmed === false) {
     return {
       success: true,
-      type: 'info',
-      message:
-        "Confirme seu-email para ter acesso ao sistema!",
-        duration: 20000
+      type: "info",
+      message: "Confirme seu-email para ter acesso ao sistema!",
+      duration: 20000,
     };
   }
 
@@ -41,9 +40,11 @@ export default async function loginAction(
       redirect: false,
     });
     return { success: true, message: "Login efetuado com sucesso!" };
-  } catch (e: any) {
-    if (e.type === "CredentialsSignin") {
-      return { success: false, message: "Email ou senha inválidos" };
+  } catch (e: unknown) {
+    if (typeof e === "object" && e !== null && "type" in e) {
+      if (e.type === "CredentialsSignin") {
+        return { success: false, message: "Email ou senha inválidos" };
+      }
     }
 
     return { success: false, message: "Tente novamente mais tarde!" };

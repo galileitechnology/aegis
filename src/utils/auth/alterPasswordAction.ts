@@ -52,7 +52,11 @@ export async function alterPasswordAction(
     });
 
     return { success: true, message: "Senha alterada com sucesso!" };
-  } catch (error) {
-    return { success: false, message: "Erro ao atualizar a senha." };
+  } catch (err) {
+    if (err) {
+      return { success: false, message: "Erro ao atualizar a senha." };
+    }
+
+    return { success: false, message: "Tente novamente mais tarde." };
   }
 }

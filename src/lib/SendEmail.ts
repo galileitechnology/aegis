@@ -1,7 +1,6 @@
 import { createTransport } from "nodemailer";
 import { render } from "@react-email/render";
 import React from "react";
-import { error } from "console";
 
 export class SendEmail {
   async sendEmail(
