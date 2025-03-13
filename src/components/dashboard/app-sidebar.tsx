@@ -1,16 +1,19 @@
-import { Calendar, Home, Inbox, Settings } from "lucide-react";
+import {  Home,  LogOut, Settings } from "lucide-react";
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import logoutAction from "@/utils/auth/logoutAction";
 
 const items = [
   {
@@ -28,10 +31,11 @@ const items = [
 
 export function AppSidebar() {
   return (
-    <Sidebar variant="sidebar" >
+    <Sidebar variant="sidebar">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Sistema</SidebarGroupLabel>
+          <SidebarSeparator />
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -48,6 +52,15 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={logoutAction}>
+              <LogOut /> Sair
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
