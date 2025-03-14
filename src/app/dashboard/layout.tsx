@@ -1,20 +1,15 @@
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
-export default function layout({
+export default function Layout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <SidebarProvider className="dark">
+    <SidebarProvider defaultOpen={false} className="dark">
       <aside>
         <AppSidebar />
       </aside>
-      <main className="w-full">
-        <SidebarTrigger className="fixed"/>
-        {children}
-      </main>
+      <main className="w-full">{children}</main>
     </SidebarProvider>
   );
 }
