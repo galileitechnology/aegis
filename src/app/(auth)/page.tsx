@@ -10,6 +10,7 @@ import { useState } from "react";
 import { BsGearFill } from "react-icons/bs";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 export default function Page() {
   const router = useRouter();
@@ -22,8 +23,11 @@ export default function Page() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (data: FormData) => {
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setLoading(true);
+
+    const data = new FormData(event.target as HTMLFormElement);
     const result = await loginAction(data);
 
     if (!result.success) {
@@ -42,8 +46,8 @@ export default function Page() {
   };
   return (
     <div className="h-screen w-full flex flex-col gap-10 items-center justify-center p-5">
-      <Form
-        action={handleSubmit}
+      <form
+        onSubmit={handleSubmit}
         className="z-10 w-full md:w-[400px] bg-white border shadow-2xl py-10 px-5 rounded"
       >
         <h2 className="flex items-center gap-2 font-bold text-2xl mb-5 justify-center">
@@ -57,13 +61,14 @@ export default function Page() {
             name="email"
             type="email"
             id="email"
+            disabled={loading}
             placeholder="Insira seu e-mail"
             value={formData.email}
             onChange={handleChange}
           />
         </div>
 
-        <PassowordInput />
+        <PassowordInput  disabled={loading}/>
         <div className="mb-5">
           <Link href={"/esqueci"} className="text-xs underline">
             Esqueci minha senha
@@ -71,11 +76,22 @@ export default function Page() {
         </div>
 
         <div>
-          <Button type="submit" className="w-full cursor-pointer">
-            Enviar
+          <Button
+            type="submit"
+            className="w-full cursor-pointer"
+            disabled={loading}
+          >
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <AiOutlineLoading3Quarters className="animate-spin w-5 h-5 mr-2" />
+                Enviando...
+              </div>
+            ) : (
+              "Enviar"
+            )}
           </Button>
         </div>
-      </Form>
+      </form>
 
       <div className="text-gray-800/70 text-sm z-10">
         <span>Ainda não tem uma conta? </span>

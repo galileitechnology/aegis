@@ -11,9 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { BsGearFill } from "react-icons/bs";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 export default function Page() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,22 +25,28 @@ export default function Page() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (data: FormData) => {
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setLoading(true);
+
+    const data = new FormData(event.target as HTMLFormElement);
     const result = await registerAction(data);
 
     if (!result.success) {
-      toast.error(result.message, {duration: result.duration});
+      toast.error(result.message, { duration: result.duration });
+      setLoading(false);
       return;
     }
 
     toast.success(result.message);
+    setLoading(false);
     router.push("/");
   };
 
   return (
     <div className="h-screen w-full flex flex-col gap-10 items-center justify-center p-5">
-      <Form
-        action={handleSubmit}
+      <form
+        onSubmit={handleSubmit}
         className="z-10 bg-white w-full md:w-[400px] border shadow-2xl py-10 px-5 rounded"
       >
         <h2 className="flex items-center gap-2 font-bold text-2xl mb-5 justify-center">
@@ -53,6 +61,7 @@ export default function Page() {
             name="name"
             type="text"
             id="name"
+            disabled={loading}
             placeholder="Insira seu nome"
             value={formData.name}
             onChange={handleChange}
@@ -67,18 +76,26 @@ export default function Page() {
             name="email"
             type="email"
             id="email"
+            disabled={loading}
             placeholder="Insira seu e-mail"
             value={formData.email}
             onChange={handleChange}
           />
         </div>
 
-        <PassowordInput />
+        <PassowordInput disabled={loading} />
 
-          <Button type="submit" className="w-full mt-5">
-            Cadastrar
-          </Button>
-      </Form>
+        <Button type="submit" className="w-full mt-5" disabled={loading}>
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <AiOutlineLoading3Quarters className="animate-spin w-5 h-5 mr-2" />
+              Cadastrando...
+            </div>
+          ) : (
+            "Cadastrar"
+          )}
+        </Button>
+      </form>
 
       <div className="z-10 text-gray-800/70 text-sm">
         <span>Já tem uma conta? </span>

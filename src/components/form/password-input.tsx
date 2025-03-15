@@ -5,7 +5,7 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
-export default function PassowordInputs() {
+export default function PassowordInputs({ disabled }: { disabled?: boolean }) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -18,6 +18,7 @@ export default function PassowordInputs() {
           type={showPassword ? "text" : "password"}
           id="password"
           name="password"
+          disabled={disabled}
           placeholder="********"
         />
         <button
