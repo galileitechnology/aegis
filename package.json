@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
   "dependencies": {
     "@bprogress/next": "^3.2.10",
     "@prisma/client": "^6.4.1",
@@ -42,7 +45,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/js-cookie": "^3.0.6",
-    "@types/node": "^20",
+    "@types/node": "^20.17.24",
     "@types/nodemailer": "^6.4.17",
     "@types/nprogress": "^0.2.3",
     "@types/react": "^19",
@@ -51,7 +54,9 @@
     "eslint-config-next": "15.2.1",
     "prisma": "^6.4.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
   },
   "workspaces": [
     "src/packages/*"

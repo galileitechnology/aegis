@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Form from "next/form";
 
 import PassowordInput from "@/components/form/password-input";
 import registerAction from "@/utils/auth/registerAction";
