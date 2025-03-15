@@ -1,11 +1,8 @@
-import type { Metadata } from "next";
+"use client";
+
 import "./globals.css";
 import { Toaster } from "sonner";
-
-
-export const metadata: Metadata = {
-  title: "Sistema",
-};
+import { ProgressProvider } from "@bprogress/next/app";
 
 export default function RootLayout({
   children,
@@ -15,8 +12,10 @@ export default function RootLayout({
   return (
     <html lang="pt-br">
       <body>
-        <main>{children}</main>
-        <Toaster richColors />
+        <ProgressProvider color="#000 " options={{ showSpinner: false }} shallowRouting>
+          <main>{children}</main>
+          <Toaster richColors />
+        </ProgressProvider>
       </body>
     </html>
   );

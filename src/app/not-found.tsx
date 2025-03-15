@@ -1,4 +1,4 @@
-import NotFound from "@/public/errors/not-found.png"
+import NotFound from "@/../public/errors/not-found.png"
 import Image from "next/image";
 import Link from "next/link";
 

@@ -5,7 +5,7 @@ export default function Layout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <SidebarProvider defaultOpen={false} className="dark">
+    <SidebarProvider defaultOpen={true} className="dark">
       <aside>
         <AppSidebar />
       </aside>

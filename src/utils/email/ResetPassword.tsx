@@ -1,5 +1,5 @@
 import { SendEmail } from "@/lib/SendEmail";
-import { getServerIp } from "@/utils/getServerIp";
+import { getServerIp } from "@/utils/server/getServerIp";
 import PasswordReset from "@/packages/transactional/emails/ResetPassword";
 
 export class ResetPassword {

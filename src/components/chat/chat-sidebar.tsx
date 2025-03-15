@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import logoutAction from "@/utils/auth/logoutAction";
+import { Session } from "@/interfaces/session";
+import { getFirstTwoNames } from "@/utils/getFirstTwoNames";
+import { getInitials } from "@/utils/getInitials";
 
 import {
   LogOut,
@@ -26,9 +30,7 @@ import {
   SidebarSeparator,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import getSession from "@/utils/auth/getSessionData";
-import { useEffect, useState } from "react";
-import { Session } from "@/interfaces/session";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 const items = [
   {
@@ -43,22 +45,6 @@ const items = [
   },
 ];
 
-function getFirstTwoNames(fullName?: string): string {
-  if (!fullName) return "";
-
-  const names = fullName.split(" ");
-  return names.slice(0, 2).join(" ");
-}
-
-function getInitials(fullName?: string): string {
-  if (!fullName) return "";
-
-  const names = fullName.split(" ");
-  const initials = names.map((name) => name.charAt(0).toUpperCase()).join("");
-
-  return initials;
-}
-
 export function ChatSidebar() {
   const [session, setSession] = useState<Session | null>(null);
 
@@ -71,7 +57,6 @@ export function ChatSidebar() {
 
     fetchSession();
   }, []);
-  
 
   return (
     <Sidebar collapsible={"icon"} variant={"floating"}>
@@ -82,12 +67,18 @@ export function ChatSidebar() {
               <Avatar>
                 <AvatarImage src="user.png" />
                 <AvatarFallback className="bg-gray-700 text-white text-2xl font-bold">
-                  {getInitials(session?.user?.name)}
+                  {session ? (
+                    getInitials(session?.user?.name)
+                  ) : (
+                    <AiOutlineLoading3Quarters className="animate-spin w-5 h-5" />
+                  )}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <h3 className="text-lg">
-                  {getFirstTwoNames(session?.user?.name)}
+                  {session
+                    ? getFirstTwoNames(session?.user?.name)
+                    : "Carregando..."}
                 </h3>
                 <p>Usuario</p>
               </div>

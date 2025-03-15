@@ -1,4 +1,4 @@
-import Backgroung from "@/public/bg/backgroung.jpg";
+import Backgroung from "@/../public/bg/backgroung.jpg";
 import Image from "next/image";
 
 export default function Layout({

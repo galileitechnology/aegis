@@ -13,7 +13,6 @@ import { PlusIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ChatSidebar } from "@/components/chat/chat-sidebar";
-import ChatMessages from "@/components/chat/chat-messages";
 
 export default function Layout({
   children,
@@ -21,7 +20,7 @@ export default function Layout({
   const handleSubmit = () => {};
 
   return (
-    <SidebarProvider defaultOpen={false} className="dark">
+    <SidebarProvider defaultOpen={true} className="dark">
       <aside>
         <ChatSidebar />
       </aside>
@@ -30,7 +29,9 @@ export default function Layout({
         <div className="text-end fixed right-10 top-5">
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="text-white bg-gray-800 hover:bg-gray-700"><PlusIcon size={18} /> Criar Sala</Button>
+              <Button className="text-white bg-gray-800 hover:bg-gray-700">
+                <PlusIcon size={18} /> Criar Sala
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
