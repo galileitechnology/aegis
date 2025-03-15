@@ -4,8 +4,9 @@ export function middleware(req: NextRequest) {
   const authCookie = req.cookies.get("authjs.session-token");
   const loginPage = req.nextUrl.pathname === "/";
   const dashboardPage = req.nextUrl.pathname.startsWith("/dashboard");
+  const chatPage = req.nextUrl.pathname.startsWith("/chat");
 
-  if (!authCookie && dashboardPage) {
+  if (!authCookie && (dashboardPage || chatPage)) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
@@ -17,5 +18,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*", "/dashboard"],
+  matcher: ["/", "/dashboard/:path*", "/dashboard", "/chat/:path*"],
 };

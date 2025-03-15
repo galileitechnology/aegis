@@ -9,7 +9,7 @@ export default function Layout({
       <aside>
         <AppSidebar />
       </aside>
-      <main className="w-full">{children}</main>
+      <main className="w-full dark">{children}</main>
     </SidebarProvider>
   );
 }

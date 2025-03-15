@@ -7,6 +7,9 @@ import {
   Settings2,
   Menu,
   LayoutDashboard,
+  User,
+  UserCircle,
+  UserCircle2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -27,25 +30,25 @@ import logoutAction from "@/utils/auth/logoutAction";
 
 const items = [
   {
-    title: "Dashboard",
-    url: "/",
-    icon: LayoutDashboard,
+    title: "Sala 1",
+    url: "/sala-1",
+    icon: UserCircle,
   },
   {
-    title: "Chat",
-    url: "/chat",
-    icon: MessageCircle,
+    title: "Sala 2",
+    url: "/sala-2",
+    icon: UserCircle2,
   },
 ];
 
-export function AppSidebar() {
+export function ChatSidebar() {
   return (
     <>
-      <Sidebar collapsible={"icon"} variant={"floating"}>
+      <Sidebar collapsible={"icon"} variant={"floating"} >
         <SidebarContent className="overflow-hidden">
           <SidebarGroup>
             <SidebarHeader>
-              <SidebarGroupLabel className="text-md">Painel</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-md">Salas de Chat</SidebarGroupLabel>
               <SidebarTrigger className="absolute top-1 right-1 flex items-center gap-2">
                 <Menu /> Fechar Sidebar
               </SidebarTrigger>
@@ -69,9 +72,9 @@ export function AppSidebar() {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <Link href={"/dashboard/definicoes"}>
+              <Link href={"/dashboard"}>
                 <SidebarMenuButton>
-                  <Settings2 /> Definições
+                  <LayoutDashboard /> Dashboard
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
