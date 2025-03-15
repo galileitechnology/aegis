@@ -102,3 +102,18 @@ EMAIL_SERVER_FROM_NAME="Seu nome"
 ```shell
     npm run dev
 ```
+
+---
+
+<br>
+<br>
+<br>
+<br>
+
+#### !!! Caso queira excluir os dados do banco (CUIDADO)
+
+- Resetar banco de dados (irá excluir todos os dados do banco)
+
+```shell
+npx prisma migrate reset
+```
