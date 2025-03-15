@@ -75,7 +75,7 @@ npx prisma db seed
 
 ---
 
-### 5 - Configurar servidor SMTP
+### 5 - Configurar servidor SMTP e Alterar visual do email enviado
 
 - Altere o .env com os dados do seu servidor SMTP
 
@@ -87,17 +87,15 @@ EMAIL_SERVER_PASSWORD="Sua senha"
 EMAIL_SERVER_FROM_NAME="Seu nome"
 ```
 
----
+- Alterar visual de email
 
-### 6 - Alterar visual de email
-
-- Acesse a pasta Packages
+    - Acesse a pasta Packages
 
 ```shell
     cd src/packages/
 ```
 
-### 7 - Iniciar Servidor para visualização da Prévia de email
+- Iniciar Servidor para visualização da Prévia de email
 
 ```shell
     npm run dev
