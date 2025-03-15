@@ -108,7 +108,7 @@ EMAIL_SERVER_FROM_NAME="Seu nome"
 <br>
 <br>
 
-#### !!! Caso queira excluir os dados do banco (CUIDADO)
+### Caso queira excluir os dados do banco (CUIDADO)
 
 - Resetar banco de dados (irá excluir todos os dados do banco)
 
