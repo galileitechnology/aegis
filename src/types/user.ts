@@ -1,8 +1,9 @@
 export type User = {
-  id?: number;
+  id: number;
   name: string;
   email: string;
   password?: string;
   confirmed?: boolean | null;
   confirmToken?: string | null;
+  createdAt: string;
 };

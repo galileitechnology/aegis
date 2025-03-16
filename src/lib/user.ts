@@ -15,7 +15,12 @@ export async function findUserByCredentials(email: string, password: string) {
   const passwordMatch = compareSync(password, user.password);
 
   if (passwordMatch) {
-    return { id: user.id.toString(), email: user.email, name: user.name };
+    return {
+      id: user.id.toString(),
+      email: user.email,
+      name: user.name,
+      createdAt: user.createdAt.toISOString(),
+    };
   }
 
   return null;
