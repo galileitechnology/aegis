@@ -106,7 +106,6 @@ EMAIL_SERVER_FROM_NAME="Seu nome"
 <br>
 <br>
 <br>
-<br>
 
 ### Caso queira excluir os dados do banco (CUIDADO)
 
