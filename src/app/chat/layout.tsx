@@ -38,8 +38,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     }
 
     setLoading(false);
-    setOpen(false); // Fecha o diálogo
-    setRefreshRooms((prev) => !prev); // Atualiza as salas
+    setOpen(false); 
+    setRefreshRooms((prev) => !prev); 
     toast.success(result.message);
   };
 

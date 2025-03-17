@@ -50,7 +50,7 @@ export function ChatSidebar({ refreshRooms }: { refreshRooms: boolean }) {
 
     fetchSession();
     fetchRooms();
-  }, [refreshRooms]); // Atualiza as salas sempre que refreshRooms mudar
+  }, [refreshRooms]);
 
   return (
     <Sidebar collapsible={"icon"} variant={"floating"}>
