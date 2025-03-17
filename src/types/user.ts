@@ -5,5 +5,5 @@ export type User = {
   password?: string;
   confirmed?: boolean | null;
   confirmToken?: string | null;
-  createdAt: string;
+  createdAt: string | Date;
 };

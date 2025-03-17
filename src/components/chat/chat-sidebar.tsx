@@ -9,7 +9,7 @@ import { getInitials } from "@/utils/getInitials";
 
 import { LogOut, Menu, LayoutDashboard } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+  
 import {
   Sidebar,
   SidebarContent,

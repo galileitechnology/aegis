@@ -20,11 +20,12 @@ export default async function registerAction(
 ): Promise<Message> {
   const entries = Array.from(formData.entries());
 
-  const data: User = Object.fromEntries(entries) as {
+  const data = Object.fromEntries(entries) as {
     name: string;
     email: string;
     password: string;
   };
+  
 
   if (!data.name || !data.email || !data.password) {
     return { success: false, message: "Preencha todos os campos" };
