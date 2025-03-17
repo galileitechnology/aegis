@@ -19,10 +19,10 @@ import { createRoom } from "@/utils/chat/registerRoom";
 import { toast } from "sonner";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
-export default function Layout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [refreshRooms, setRefreshRooms] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -38,20 +38,25 @@ export default function Layout({
     }
 
     setLoading(false);
+    setOpen(false); // Fecha o diálogo
+    setRefreshRooms((prev) => !prev); // Atualiza as salas
     toast.success(result.message);
   };
 
   return (
     <SidebarProvider defaultOpen={true} className="dark">
       <aside>
-        <ChatSidebar />
+        <ChatSidebar refreshRooms={refreshRooms} />
       </aside>
       <section></section>
       <main className="h-screen w-full">
         <div className="text-end fixed right-10 top-5">
-          <Dialog>
+          <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="text-white bg-gray-800 hover:bg-gray-700">
+              <Button
+                className="text-white bg-gray-800 hover:bg-gray-700"
+                onClick={() => setOpen(true)}
+              >
                 <PlusIcon size={18} /> Criar Sala
               </Button>
             </DialogTrigger>
@@ -64,7 +69,6 @@ export default function Layout({
                     placeholder="Insira o nome da Sala"
                     name="name"
                   />
-
                   <div className="text-end mt-5">
                     <Button disabled={loading}>
                       {loading ? (
@@ -82,7 +86,6 @@ export default function Layout({
             </DialogContent>
           </Dialog>
         </div>
-
         {children}
       </main>
     </SidebarProvider>

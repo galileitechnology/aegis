@@ -27,7 +27,7 @@ import {
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { getRooms } from "@/utils/chat/getRooms";
 
-export function ChatSidebar() {
+export function ChatSidebar({ refreshRooms }: { refreshRooms: boolean }) {
   const [session, setSession] = useState<Session | null>(null);
   const [rooms, setRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +40,7 @@ export function ChatSidebar() {
     }
 
     async function fetchRooms() {
+      setLoading(true);
       const response = await getRooms();
       if (Array.isArray(response)) {
         setRooms(response);
@@ -49,7 +50,7 @@ export function ChatSidebar() {
 
     fetchSession();
     fetchRooms();
-  }, []);
+  }, [refreshRooms]); // Atualiza as salas sempre que refreshRooms mudar
 
   return (
     <Sidebar collapsible={"icon"} variant={"floating"}>
