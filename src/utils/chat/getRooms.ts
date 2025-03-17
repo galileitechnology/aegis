@@ -2,7 +2,7 @@
 import { auth } from "@/auth";
 import db from "@/lib/db";
 
-export async function getUsers() {
+export async function getRooms() {
   const session = await auth();
 
   try {
@@ -10,15 +10,14 @@ export async function getUsers() {
       return { success: false, message: "Usuário não autenticado" };
     }
 
-    const currentUserId = Number(session.user.id);
-    const users = await db.user.findMany({
+    const rooms = await db.room.findMany({
       orderBy: {
         id: "desc"
       }
     });
-    const filteredUsers = users.filter((user) => user.id !== currentUserId);
-    return filteredUsers;
+
+    return rooms;
   } catch (error) {
-    return { success: false, message: "Erro ao buscar usuários" };
+    return { success: false, message: "Erro ao buscar salas" };
   }
 }

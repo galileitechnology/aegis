@@ -7,13 +7,7 @@ import { Session } from "@/interfaces/session";
 import { getFirstTwoNames } from "@/utils/getFirstTwoNames";
 import { getInitials } from "@/utils/getInitials";
 
-import {
-  LogOut,
-  Menu,
-  LayoutDashboard,
-  UserCircle,
-  UserCircle2,
-} from "lucide-react";
+import { LogOut, Menu, LayoutDashboard } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import {
@@ -31,22 +25,12 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-
-const items = [
-  {
-    title: "Sala 1",
-    url: "/sala-1",
-    icon: UserCircle,
-  },
-  {
-    title: "Sala 2",
-    url: "/sala-2",
-    icon: UserCircle2,
-  },
-];
+import { getRooms } from "@/utils/chat/getRooms";
 
 export function ChatSidebar() {
   const [session, setSession] = useState<Session | null>(null);
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchSession() {
@@ -55,7 +39,16 @@ export function ChatSidebar() {
       setSession(data);
     }
 
+    async function fetchRooms() {
+      const response = await getRooms();
+      if (Array.isArray(response)) {
+        setRooms(response);
+      }
+      setLoading(false);
+    }
+
     fetchSession();
+    fetchRooms();
   }, []);
 
   return (
@@ -80,7 +73,7 @@ export function ChatSidebar() {
                     ? getFirstTwoNames(session?.user?.name)
                     : "Carregando..."}
                 </h3>
-                <p>Usuario</p>
+                <p>Usuário</p>
               </div>
             </SidebarGroupLabel>
             <SidebarSeparator className="mt-5" />
@@ -90,16 +83,26 @@ export function ChatSidebar() {
           </SidebarHeader>
           <SidebarGroupContent className="mt-2">
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link href={`${item.url}`}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
+              {loading ? (
+                <SidebarMenuItem className="flex gap-3">
+                  <AiOutlineLoading3Quarters className="animate-spin w-5 h-5" />
+                  <span>Carregando salas...</span>
                 </SidebarMenuItem>
-              ))}
+              ) : rooms.length > 0 ? (
+                rooms.map((room) => (
+                  <SidebarMenuItem key={room.id}>
+                    <SidebarMenuButton asChild>
+                      <Link href={`/chat/sala/${room.id}`}>
+                        <span>{room.name}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))
+              ) : (
+                <SidebarMenuItem>
+                  <span>Nenhuma sala encontrada</span>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

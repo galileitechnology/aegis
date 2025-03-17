@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   Dialog,
   DialogContent,
@@ -13,11 +15,31 @@ import { PlusIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ChatSidebar } from "@/components/chat/chat-sidebar";
+import { createRoom } from "@/utils/chat/registerRoom";
+import { toast } from "sonner";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 export default function Layout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const handleSubmit = () => {};
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setLoading(true);
+
+    const data = new FormData(event.target as HTMLFormElement);
+    const result = await createRoom(data);
+
+    if (!result.success) {
+      toast.error(result.message);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false);
+    toast.success(result.message);
+  };
 
   return (
     <SidebarProvider defaultOpen={true} className="dark">
@@ -37,10 +59,23 @@ export default function Layout({
               <DialogHeader>
                 <DialogTitle>Nova Sala</DialogTitle>
                 <form onSubmit={handleSubmit} className="mt-3">
-                  <Input placeholder="Insira o nome da Sala" name="room_name" />
+                  <Input
+                    disabled={loading}
+                    placeholder="Insira o nome da Sala"
+                    name="name"
+                  />
 
                   <div className="text-end mt-5">
-                    <Button>Salvar</Button>
+                    <Button disabled={loading}>
+                      {loading ? (
+                        <div className="flex items-center justify-center">
+                          <AiOutlineLoading3Quarters className="animate-spin w-5 h-5 mr-2" />
+                          Salvando...
+                        </div>
+                      ) : (
+                        "Salvar"
+                      )}
+                    </Button>
                   </div>
                 </form>
               </DialogHeader>

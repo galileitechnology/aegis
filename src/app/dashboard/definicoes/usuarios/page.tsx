@@ -5,7 +5,17 @@ import { DataTable } from "@/components/dashboard/data-table";
 import { UserCogIcon } from "lucide-react";
 import { columns } from "./columns";
 import { User } from "@/types/user";
+
 import { getUsers } from "@/utils/auth/getUsers";
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export default function Page() {
   const [data, setData] = useState<User[]>([]);
