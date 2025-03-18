@@ -13,8 +13,8 @@ export async function getUsers() {
     const currentUserId = Number(session.user.id);
     const users = await db.user.findMany({
       orderBy: {
-        id: "desc"
-      }
+        id: "desc",
+      },
     });
     const filteredUsers = users.filter((user) => user.id !== currentUserId);
     return filteredUsers;

@@ -1,4 +1,4 @@
-"use server"
+"use server";
 
 import db from "@/lib/db";
 
@@ -25,7 +25,7 @@ export async function createRoom(
 
     return { success: true, message: "Sala criada com sucesso", room };
   } catch (error: any) {
-    console.log(error.message)
+    console.log(error.message);
     return { success: false, message: "Erro ao criar a sala.", error };
   }
 }

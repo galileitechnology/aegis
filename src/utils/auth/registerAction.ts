@@ -25,7 +25,6 @@ export default async function registerAction(
     email: string;
     password: string;
   };
-  
 
   if (!data.name || !data.email || !data.password) {
     return { success: false, message: "Preencha todos os campos" };

@@ -12,8 +12,8 @@ export async function getRooms() {
 
     const rooms = await db.room.findMany({
       orderBy: {
-        id: "desc"
-      }
+        id: "desc",
+      },
     });
 
     return rooms;

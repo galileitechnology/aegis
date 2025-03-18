@@ -6,10 +6,21 @@ import logoutAction from "@/utils/auth/logoutAction";
 import { Session } from "@/interfaces/session";
 import { getFirstTwoNames } from "@/utils/getFirstTwoNames";
 import { getInitials } from "@/utils/getInitials";
+import { getRooms } from "@/utils/chat/getRooms";
+import { CreateRoomDialog } from "@/components/chat/create-room-dialog";
 
-import { LogOut, Menu, LayoutDashboard } from "lucide-react";
+import {
+  LogOut,
+  Menu,
+  LayoutDashboard,
+  ChartArea,
+  MessageCircle,
+  MessageCircleOff,
+  MessageCircleIcon,
+  MessageSquareCode,
+  MessageSquare,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-  
 import {
   Sidebar,
   SidebarContent,
@@ -21,16 +32,17 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { getRooms } from "@/utils/chat/getRooms";
 
-export function ChatSidebar({ refreshRooms }: { refreshRooms: boolean }) {
+export function ChatSidebar() {
   const [session, setSession] = useState<Session | null>(null);
   const [rooms, setRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
     async function fetchSession() {
@@ -50,7 +62,7 @@ export function ChatSidebar({ refreshRooms }: { refreshRooms: boolean }) {
 
     fetchSession();
     fetchRooms();
-  }, [refreshRooms]);
+  }, [refresh]);
 
   return (
     <Sidebar collapsible={"icon"} variant={"floating"}>
@@ -82,8 +94,13 @@ export function ChatSidebar({ refreshRooms }: { refreshRooms: boolean }) {
               <Menu /> Fechar Sidebar
             </SidebarTrigger>
           </SidebarHeader>
-          <SidebarGroupContent className="mt-2">
-            <SidebarMenu>
+          <SidebarGroupContent className="relative">
+            <div className="absolute top-0 -right-1">
+              <CreateRoomDialog
+                onRoomCreated={() => setRefresh((prev) => !prev)}
+              />
+            </div>
+            <SidebarMenu className="mt-10">
               {loading ? (
                 <SidebarMenuItem className="flex gap-3">
                   <AiOutlineLoading3Quarters className="animate-spin w-5 h-5" />
@@ -92,23 +109,24 @@ export function ChatSidebar({ refreshRooms }: { refreshRooms: boolean }) {
               ) : rooms.length > 0 ? (
                 rooms.map((room) => (
                   <SidebarMenuItem key={room.id}>
-                    <SidebarMenuButton asChild>
-                      <Link href={`/chat/sala/${room.id}`}>
+                    <Link href={`/chat/sala/${room.id}`}>
+                      <SidebarMenuButton>
+                        <MessageSquare />
                         <span>{room.name}</span>
-                      </Link>
-                    </SidebarMenuButton>
+                      </SidebarMenuButton>
+                    </Link>
                   </SidebarMenuItem>
                 ))
               ) : (
-                <SidebarMenuItem>
-                  <span>Nenhuma sala encontrada</span>
+                <SidebarMenuItem className="text-center">
+                  <span className="text-gray-100/30">Nenhuma sala encontrada</span>
                 </SidebarMenuItem>
               )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t">
         <SidebarMenu>
           <SidebarMenuItem>
             <Link href={"/dashboard"}>
