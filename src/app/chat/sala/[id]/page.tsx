@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import dynamic from "next/dynamic";
 import Chat from "@/components/chat/chat-messages";
 
 export default async function Page({

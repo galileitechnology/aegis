@@ -50,7 +50,7 @@ export default function Chat({ id }: { id: string }) {
         <Input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown} // Adicionando o evento de tecla pressionada
+          onKeyDown={handleKeyDown}
           className="border-none focus:ring-0 focus:outline-none"
           style={{ boxShadow: "none" }}
         />
