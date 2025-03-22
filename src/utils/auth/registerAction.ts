@@ -5,14 +5,13 @@ import { User } from "@/types/user";
 import db from "@/lib/db";
 import { hashSync } from "bcrypt-ts";
 import { ConfirmRegisterEmail } from "../email/ConfirmRegisterEmail";
-import crypto from "crypto";
 
 async function sendEmail(user: User) {
   const confirmEmail = new ConfirmRegisterEmail();
-  if (!user.confirmToken) {
+  if (!user.confirmCode) {
     return;
   }
-  await confirmEmail.execute(user.name, user.email, user.confirmToken);
+  await confirmEmail.execute(user.name, user.email, user.confirmCode);
 }
 
 export default async function registerAction(
@@ -40,7 +39,9 @@ export default async function registerAction(
     return { success: false, message: "Esse email já está em uso!" };
   }
 
-  const confirmToken: string = crypto.randomBytes(32).toString("hex");
+  const confirmCode: string = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
 
   const user: User = await db.user.create({
     data: {
@@ -48,14 +49,14 @@ export default async function registerAction(
       name: data.name,
       password: hashSync(data.password),
       confirmed: false,
-      confirmToken,
+      confirmCode,
     },
   });
 
   if (data.password.length < 8) {
     return {
       success: false,
-      message: "A senha deve ter pelo menos 8 carateres",
+      message: "A senha deve ter pelo menos 8 caracteres",
     };
   }
 
@@ -63,6 +64,6 @@ export default async function registerAction(
   return {
     success: true,
     message:
-      "Enviamos um e-mail de confirmação, acesse sua caixa de mensagens e confirme seu e-mail para continuar",
+      "Enviamos um e-mail com o código de confirmação",
   };
 }

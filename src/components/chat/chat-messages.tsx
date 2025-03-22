@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Chat({ id }: { id: string }) {
-  const [messages, setMessages] = useState<{ user: string; text: string }[]>(
-    []
-  );
+  const [messages, setMessages] = useState<{ user: string; text: string }[]>([]);
   const [message, setMessage] = useState("");
 
   const handleSendMessage = () => {
@@ -29,19 +28,32 @@ export default function Chat({ id }: { id: string }) {
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`mt-5 w-full rounded-full flex gap-2 ${
+            className={`mt-5 w-full flex gap-2 items-end ${
               msg.user === "Você" ? "justify-end" : "justify-start"
-            } items-center`}
+            }`}
           >
+            {msg.user !== "Você" && (
+              <Avatar className="w-10 h-10">
+                <AvatarImage src="" alt="User" />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
+            )}
             <div
-              className={`bg-white min-w-20 max-w-96 p-2 rounded-lg text-md ${
-                msg.user === "Você" ? "text-end" : ""
+              className={`p-3 max-w-96 text-white rounded-2xl ${
+                msg.user === "Você"
+                  ? "bg-blue-500 text-end rounded-br-none"
+                  : "bg-gray-300 text-black rounded-bl-none"
               }`}
             >
-              <h4 className="font-bold">{msg.user}</h4>
-              <p className="">{msg.text}</p>
+              <h4 className="font-bold text-xs">{msg.user}</h4>
+              <p className="text-sm">{msg.text}</p>
             </div>
-            <div className="w-14 h-14 bg-white rounded-full"></div>
+            {msg.user === "Você" && (
+              <Avatar className="w-10 h-10">
+                <AvatarImage src="" alt="Você" />
+                <AvatarFallback>RT</AvatarFallback>
+              </Avatar>
+            )}
           </div>
         ))}
       </div>

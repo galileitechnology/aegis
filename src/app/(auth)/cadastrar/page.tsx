@@ -39,7 +39,7 @@ export default function Page() {
 
     toast.success(result.message);
     setLoading(false);
-    router.push("/");
+    router.push("/confirmar");
   };
 
   return (

@@ -6,8 +6,6 @@ import {
   Heading,
   Hr,
   Html,
-  Link,
-  Section,
   Tailwind,
   Text,
 } from "@react-email/components";
@@ -16,13 +14,13 @@ import * as React from "react";
 interface RegisterConfirmProps {
   username?: string;
   email?: string;
-  confirmLink?: string;
+  confirmCode?: string;
 }
 
 export const RegisterEmailConfirm = ({
   username,
   email,
-  confirmLink,
+  confirmCode,
 }: RegisterConfirmProps) => {
   return (
     <Html>
@@ -42,24 +40,13 @@ export const RegisterEmailConfirm = ({
               <strong>{email}</strong> no nosso sistema.
             </Text>
             <Text className="text-center text-lg">
-              Clique no botão abaixo para completar seu cadastro
+              Esse é o seu código de confirmação
             </Text>
-            <Section className="text-center mt-5 mb-5">
-              <Button
-                className="bg-[#000000] rounded text-white text-[12px] font-semibold no-underline text-center px-5 py-3"
-                href={confirmLink}
-              >
-                Clique para confirmar
-              </Button>
-            </Section>
-            <Text className="text-center">ou copie e cole o link no seu navegador: </Text>
-            <Text className="w-full text-black text-[14px] leading-[24px] text-center">
-              <Link href={confirmLink} className="text-blue-600 no-underline w-full">
-                {confirmLink}
-              </Link>
+            <Text className="text-center text-2xl font-bold">
+              {confirmCode}
             </Text>
             <Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
-            <Text className="text-[#666666] text-[12px] leading-[24px]">
+            <Text className="text-[#666666] text-[12px] leading-[24px] text-center">
               Esse e-mail foi enviado para{" "}
               <span className="text-black">{username}</span> caso não tenha
               solicitado cadastro, por favor ignore esse email.

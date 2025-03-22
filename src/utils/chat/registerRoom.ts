@@ -19,6 +19,16 @@ export async function createRoom(
       return { success: false, message: "O nome da sala é obrigatório." };
     }
 
+    const findRoom = await db.room.findUnique({
+      where: {
+        name: name,
+      },
+    });
+
+    if(findRoom) {
+      return { success: false, message: "Essa sala já existe" };
+    }
+
     const room = await db.room.create({
       data: { name },
     });
@@ -26,6 +36,6 @@ export async function createRoom(
     return { success: true, message: "Sala criada com sucesso", room };
   } catch (error: any) {
     console.log(error.message);
-    return { success: false, message: "Erro ao criar a sala.", error };
+    return { success: false, message: "Erro ao criar a sala." };
   }
 }

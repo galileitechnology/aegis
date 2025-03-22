@@ -4,6 +4,6 @@ export type User = {
   email: string;
   password?: string;
   confirmed?: boolean | null;
-  confirmToken?: string | null;
+  confirmCode?: string | null;
   createdAt: string | Date;
 };
