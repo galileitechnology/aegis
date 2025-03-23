@@ -7,15 +7,16 @@ import { hashSync } from "bcrypt-ts";
 import { ConfirmRegisterEmail } from "../email/ConfirmRegisterEmail";
 
 async function sendEmail(user: User) {
-  const confirmEmail = new ConfirmRegisterEmail();
   if (!user.confirmCode) {
     return;
   }
+  const confirmEmail = new ConfirmRegisterEmail();
   await confirmEmail.execute(user.name, user.email, user.confirmCode);
 }
 
 export default async function registerAction(
-  formData: FormData
+  formData: FormData,
+  isAdmin: boolean = false
 ): Promise<Message> {
   const entries = Array.from(formData.entries());
 
@@ -29,6 +30,13 @@ export default async function registerAction(
     return { success: false, message: "Preencha todos os campos" };
   }
 
+  if (data.password.length < 8) {
+    return {
+      success: false,
+      message: "A senha deve ter pelo menos 8 caracteres",
+    };
+  }
+
   const findUser = await db.user.findUnique({
     where: {
       email: data.email,
@@ -39,31 +47,26 @@ export default async function registerAction(
     return { success: false, message: "Esse email já está em uso!" };
   }
 
-  const confirmCode: string = Math.floor(
-    100000 + Math.random() * 900000
-  ).toString();
-
   const user: User = await db.user.create({
     data: {
       email: data.email,
       name: data.name,
       password: hashSync(data.password),
-      confirmed: false,
-      confirmCode,
+      confirmed: isAdmin,
+      confirmCode: isAdmin
+        ? null
+        : Math.floor(100000 + Math.random() * 900000).toString(),
     },
   });
 
-  if (data.password.length < 8) {
-    return {
-      success: false,
-      message: "A senha deve ter pelo menos 8 caracteres",
-    };
+  if (!isAdmin) {
+    await sendEmail(user);
   }
 
-  sendEmail(user);
   return {
     success: true,
-    message:
-      "Enviamos um e-mail com o código de confirmação",
+    message: isAdmin
+      ? "Usuário cadastrado com sucesso!"
+      : "Enviamos um e-mail com o código de confirmação",
   };
 }

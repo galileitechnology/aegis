@@ -13,6 +13,14 @@ export const columns: ColumnDef<User>[] = [
     header: "Email",
   },
   {
+    accessorKey: "confirmed",
+    header: "Confirmado?",
+    cell: ({ row }) => {
+      const confirmed = row.original.confirmed;
+      return confirmed ? "Sim" : "Não";
+    },
+  },
+  {
     accessorKey: "createdAt",
     header: "Criado em",
     cell: ({ row }) => {
@@ -20,6 +28,4 @@ export const columns: ColumnDef<User>[] = [
       return createdAt ? new Date(createdAt).toLocaleDateString("pt-BR") : "-";
     },
   },
-  
-  
 ];

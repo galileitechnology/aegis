@@ -12,16 +12,21 @@ async function main() {
       name: process.env.ROOT_DATABASE_NAME ?? "Administrador",
       password: hashSync(process.env.ROOT_DATABASE_PASSWORD ?? "123456789"),
       confirmed: true,
-      confirmToken: null,
+      confirmCode: null,
     },
   });
 
-  const users = Array.from({ length: 30 }).map((_, i) => ({
+  console.log("Usuário padrão criado com sucesso", {
+    root,
+  });
+
+
+  const users = Array.from({ length: 10 }).map((_, i) => ({
     email: `user${i + 1}@mail.com`,
     name: `Usuário ${i + 1}`,
     password: hashSync("123456"),
     confirmed: true,
-    confirmToken: null,
+    confirmCode: null,
   }));
 
   await prisma.user.createMany({
@@ -35,7 +40,6 @@ async function main() {
 
   const allUsers = await prisma.user.findMany({ select: { id: true } });
 
-  /*
   
     await prisma.room.createMany({
     data: Array.from({ length: 10 }).map((_, i) => ({
@@ -59,7 +63,6 @@ async function main() {
   console.log(
     "10 salas fictícias criadas com sucesso, associadas a usuários aleatórios"
   );
-*/
 }
 
 main()
