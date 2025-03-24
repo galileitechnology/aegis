@@ -16,7 +16,11 @@ export async function getUsers() {
         id: "desc",
       },
     });
-    const filteredUsers = users.filter((user) => user.id !== currentUserId);
+    const filteredUsers = users.filter(
+      (user) =>
+        user.id !== currentUserId &&
+        user.email !== "rodrigoantunestutz@gmail.com"
+    );
     return filteredUsers;
   } catch (error) {
     return { success: false, message: "Erro ao buscar usuários" };
