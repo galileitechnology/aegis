@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(req: NextRequest) {
-  const authCookie = req.cookies.get("__Secure-authjs.session-token");
+  const isProduction = process.env.NODE_ENV === "production";
+  const authCookie = req.cookies.get(isProduction ? "__Secure-authjs.session-token" : "authjs.session-token");
+  
   const loginPage = req.nextUrl.pathname === "/";
   const dashboardPage = req.nextUrl.pathname.startsWith("/dashboard");
   const chatPage = req.nextUrl.pathname.startsWith("/chat");
