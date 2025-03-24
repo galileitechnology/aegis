@@ -12,6 +12,9 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
+<link rel="icon" href=
+"https://media.geeksforgeeks.org/wp-content/cdn-uploads/gfg_favicon.png" />
+
 export default function Page() {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -45,14 +48,18 @@ export default function Page() {
     router.push("/dashboard");
   };
   return (
-    <div className="h-screen w-full flex flex-col gap-10 items-center justify-center p-5">
+    <div className="h-screen w-full flex flex-col gap-10 items-center justify-center p-5 bg-[#191919]">
       <form
         onSubmit={handleSubmit}
-        className="z-10 w-full md:w-[400px] bg-neutral-950 border shadow-2xl py-10 px-5 rounded"
-      >
-        <h2 className="flex items-center gap-2 font-bold text-2xl mb-5 justify-center">
-          <BsGearFill /> Acesse o Sistema
-        </h2>
+        className="z-10 w-full md:w-[400px] bg-[#191919] border shadow-2xl py-10 px-5 rounded"
+      > 
+        <div>
+        <h1 className="gap-2 font-bold text-2xl mb-5">
+          AEGIS
+        </h1>
+        <h5>Advanced Executive Guidance Intelligence System</h5>
+        </div>
+
         <div className="mb-3">
           <Label htmlFor="email" className="mb-2">
             Email:
