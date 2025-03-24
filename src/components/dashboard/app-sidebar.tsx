@@ -1,12 +1,25 @@
 "use client";
 
+import Link from "next/link";
+
+import { useEffect, useState } from "react";
+import { Session } from "@/interfaces/session";
+
+import logoutAction from "@/utils/auth/logoutAction";
+import { getFirstTwoNames } from "@/utils/getFirstTwoNames";
+
+import { getInitials } from "@/utils/getInitials";
+
 import {
   MessageCircle,
-  Home,
   LogOut,
   Settings2,
   Menu,
   LayoutDashboard,
+  Settings,
+  ChevronRight,
+  User,
+  Users,
 } from "lucide-react";
 import {
   Sidebar,
@@ -19,17 +32,20 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
   SidebarSeparator,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import Link from "next/link";
-import logoutAction from "@/utils/auth/logoutAction";
-import { useEffect, useState } from "react";
-import { Session } from "@/interfaces/session";
+
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { getInitials } from "@/utils/getInitials";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { getFirstTwoNames } from "@/utils/getFirstTwoNames";
+import { BsGear } from "react-icons/bs";
 
 const items = [
   {
@@ -58,8 +74,8 @@ export function AppSidebar() {
   }, []);
 
   return (
-    <Sidebar collapsible={"icon"} variant={"floating"}>
-      <SidebarContent className="overflow-hidden">
+    <Sidebar collapsible={"icon"} variant={"sidebar"}>
+      <SidebarContent className="overflow-hidden bg-neutral-900">
         <SidebarGroup>
           <SidebarHeader>
             <SidebarGroupLabel className="flex gap-2 mt-2">
@@ -103,15 +119,40 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="bg-neutral-900">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <Link href={"/dashboard/definicoes"}>
-              <SidebarMenuButton>
-                <Settings2 /> Definições
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
+          <Collapsible defaultOpen className="group/collapsible">
+            <SidebarMenuItem>
+              <CollapsibleTrigger asChild>
+                <SidebarMenuButton>
+                  <Settings2 /> Definições
+                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                </SidebarMenuButton>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarMenuSub>
+                  <SidebarMenuSubItem>
+                    <Link href={"/dashboard/definicoes"}>
+                      <SidebarMenuButton>
+                        <BsGear size={5} /> Geral
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <Link href={"/dashboard/definicoes/usuarios"}>
+                      <SidebarMenuButton>
+                        <Users size={5} /> Usuarios
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem />
+                </SidebarMenuSub>
+              </CollapsibleContent>
+            </SidebarMenuItem>
+          </Collapsible>
+        </SidebarMenu>
+
+        <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={logoutAction}>
               <LogOut /> Sair

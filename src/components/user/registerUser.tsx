@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import registerAction from "@/utils/auth/registerAction";
@@ -11,9 +13,14 @@ import { Label } from "@/components/ui/label";
 interface RegisterUserProps {
   children?: React.ReactNode;
   isAdmin?: boolean;
+  onSuccess?: () => void;
 }
 
-export default function RegisterUser({ children, isAdmin }: RegisterUserProps) {
+export default function RegisterUser({
+  children,
+  isAdmin,
+  onSuccess,
+}: RegisterUserProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -30,7 +37,6 @@ export default function RegisterUser({ children, isAdmin }: RegisterUserProps) {
     setLoading(true);
 
     const data = new FormData(event.target as HTMLFormElement);
-    
     const result = await registerAction(data, isAdmin);
 
     if (!result.success) {
@@ -41,10 +47,9 @@ export default function RegisterUser({ children, isAdmin }: RegisterUserProps) {
 
     toast.success(result.message);
     setLoading(false);
+    onSuccess?.();
 
-    if (isAdmin) {
-      router.push("/dashboard/definicoes/usuarios");
-    } else {
+    if (!isAdmin) {
       router.push("/confirmar");
     }
   };

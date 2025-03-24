@@ -5,7 +5,6 @@ import { DataTable } from "@/components/dashboard/data-table";
 import { PlusCircle, UserCogIcon } from "lucide-react";
 import { columns } from "./columns";
 import { User } from "@/types/user";
-
 import { getUsers } from "@/utils/auth/getUsers";
 import {
   Dialog,
@@ -20,32 +19,29 @@ import RegisterUser from "@/components/user/registerUser";
 export default function Page() {
   const [data, setData] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    async function fetchUsers() {
-      setLoading(true);
-
-      const response = await getUsers();
-
-      if (Array.isArray(response)) {
-        setData(response);
-      }
-
-      setLoading(false);
-    }
-
     fetchUsers();
   }, []);
 
+  async function fetchUsers() {
+    setLoading(true);
+    const response = await getUsers();
+    if (Array.isArray(response)) {
+      setData(response);
+    }
+    setLoading(false);
+  }
 
   return (
-    <div className="min-h-96">
+    <div className="dark">
       <div className="flex justify-between items-center border-b pb-10">
         <h2 className="font-bold text-xl flex items-center gap-2">
-          <UserCogIcon size={30} /> Usuarios
+          <UserCogIcon size={30} /> Usuários
         </h2>
 
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle /> Novo
@@ -53,14 +49,20 @@ export default function Page() {
           </DialogTrigger>
           <DialogContent>
             <AlertDialogHeader>
-              <DialogTitle>Novo Usuario</DialogTitle>
-              <RegisterUser isAdmin/>
+              <DialogTitle>Novo Usuário</DialogTitle>
+              <RegisterUser
+                isAdmin
+                onSuccess={() => {
+                  setDialogOpen(false);
+                  fetchUsers();
+                }}
+              />
             </AlertDialogHeader>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="mt-10">
+      <div className="mt-5">
         <DataTable columns={columns} data={data} />
       </div>
     </div>
