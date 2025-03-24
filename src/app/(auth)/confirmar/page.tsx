@@ -89,6 +89,7 @@ export default function Page() {
           <div className="w-full flex justify-center items-center gap-5">
             {code.map((digit, index) => (
               <Input
+                className="w-12 h-12 text-center"
                 key={index}
                 id={`input-${index}`}
                 type="text"
@@ -97,7 +98,6 @@ export default function Page() {
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 onPaste={index === 0 ? handlePaste : undefined}
                 maxLength={1}
-                className="w-12 h-12 bg-neutral-800 text-white text-center"
                 disabled={loading}
               />
             ))}

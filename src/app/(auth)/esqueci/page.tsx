@@ -31,14 +31,14 @@ export default function Page() {
 
   return (
     <div className="w-full h-screen flex items-center justify-center p-5 md:p-0">
-      <div className="z-10 bg-white w-[500px] h-[260px] p-5 rounded flex flex-col gap-5">
+      <div className="z-10 bg-neutral-950 w-[500px] h-[260px] p-5 rounded flex flex-col gap-5">
         <div>
           <h2 className="text-2xl font-bold mb-2">Esqueceu sua senha?</h2>
           <p className="text-sm">
             Enviaremos um e-mail com instruções de como redefinir sua senha.
           </p>
         </div>
-        <form onSubmit={handleSubmit} className="flex flex-col">
+        <form onSubmit={handleSubmit} className="flex flex-col mt-5">
           <div>
             <Label htmlFor="email" className="mb-2">
               E-mail
@@ -51,7 +51,7 @@ export default function Page() {
               disabled={loading}
             />
           </div>
-          <div className="mt-3">
+          <div className="mt-5">
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <div className="flex items-center justify-center">
@@ -63,17 +63,6 @@ export default function Page() {
               )}
             </Button>
           </div>
-
-          {loading ? (
-            ""
-          ) : (
-            <Link
-              href={"/"}
-              className="text-center mt-3 underline text-blue-500"
-            >
-              Cancelar
-            </Link>
-          )}
         </form>
       </div>
     </div>

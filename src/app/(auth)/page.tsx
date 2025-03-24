@@ -48,7 +48,7 @@ export default function Page() {
     <div className="h-screen w-full flex flex-col gap-10 items-center justify-center p-5">
       <form
         onSubmit={handleSubmit}
-        className="z-10 w-full md:w-[400px] bg-white border shadow-2xl py-10 px-5 rounded"
+        className="z-10 w-full md:w-[400px] bg-neutral-950 border shadow-2xl py-10 px-5 rounded"
       >
         <h2 className="flex items-center gap-2 font-bold text-2xl mb-5 justify-center">
           <BsGearFill /> Acesse o Sistema
@@ -68,7 +68,7 @@ export default function Page() {
           />
         </div>
 
-        <PassowordInput  disabled={loading}/>
+        <PassowordInput disabled={loading} />
         <div className="mb-5">
           <Link href={"/esqueci"} className="text-xs underline">
             Esqueci minha senha
@@ -93,7 +93,7 @@ export default function Page() {
         </div>
       </form>
 
-      <div className="text-gray-800/70 text-sm z-10">
+      <div className="text-white text-sm z-10">
         <span>Ainda não tem uma conta? </span>
         <span>
           <Link href={"/cadastrar"} className="font-bold">

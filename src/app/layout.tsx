@@ -12,7 +12,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <body className="dark">
+      <body className="dark bg-neutral-900">
         <ProgressProvider
           color="#fff"
           options={{ showSpinner: false }}
