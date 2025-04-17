@@ -19,7 +19,7 @@ export default function RootLayout({
           shallowRouting
         >
           <main>{children}</main>
-          <Toaster richColors />
+          <Toaster className="border-none"/>
         </ProgressProvider>
       </body>
     </html>

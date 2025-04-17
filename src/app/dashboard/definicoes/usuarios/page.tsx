@@ -27,7 +27,7 @@ export default function Page() {
 
   async function fetchUsers() {
     setLoading(true);
-    const response = await getUsers();
+    const response: any = await getUsers();
     if (Array.isArray(response)) {
       setData(response);
     }
@@ -50,7 +50,7 @@ export default function Page() {
           </DialogTrigger>
           <DialogContent>
             <AlertDialogHeader>
-              <DialogTitle>Novo Usuário</DialogTitle>
+              <DialogTitle>New user</DialogTitle>
               <RegisterUser
                 isAdmin
                 onSuccess={() => {

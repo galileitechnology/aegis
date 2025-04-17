@@ -1,10 +1,10 @@
 import db from "./db";
 import { compareSync } from "bcrypt-ts";
 
-export async function findUserByCredentials(email: string, password: string) {
+export async function findUserByCredentials(username: string, password: string) {
   const user = await db.user.findFirst({
     where: {
-      email: email,
+      username: username,
     },
   });
 
@@ -18,6 +18,7 @@ export async function findUserByCredentials(email: string, password: string) {
     return {
       id: user.id.toString(),
       email: user.email,
+      username: user.username,
       name: user.name,
       createdAt: user.createdAt.toISOString(),
     };

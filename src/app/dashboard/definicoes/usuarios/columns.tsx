@@ -25,9 +25,13 @@ export const getColumns = (onDeleteSuccess: () => void): ColumnDef<User>[] => [
     header: "Nome",
   },
   {
+    accessorKey: "username",
+    header: "Username",
+  },
+  {
     accessorKey: "email",
     header: "Email",
-  },
+  },/*
   {
     accessorKey: "confirmed",
     header: "Confirmado?",
@@ -35,7 +39,7 @@ export const getColumns = (onDeleteSuccess: () => void): ColumnDef<User>[] => [
       const confirmed = row.original.confirmed;
       return confirmed ? "Sim" : "Não";
     },
-  },
+  },*/
   {
     accessorKey: "createdAt",
     header: "Criado em",

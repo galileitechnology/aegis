@@ -58,7 +58,7 @@ export default function Chat({ id }: { id: string }) {
         ))}
       </div>
 
-      <div className="bg-white flex items-center justify-between p-2 w-full h-12 rounded-lg mt-auto">
+      <div className="flex gap-3 items-center justify-between p-2 w-full h-12 rounded-lg mt-auto">
         <Input
           value={message}
           onChange={(e) => setMessage(e.target.value)}

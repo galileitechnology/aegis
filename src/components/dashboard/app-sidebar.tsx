@@ -20,6 +20,7 @@ import {
   ChevronRight,
   User,
   Users,
+  Target,
 } from "lucide-react";
 import {
   Sidebar,
@@ -57,6 +58,11 @@ const items = [
     title: "Chat",
     url: "/chat",
     icon: MessageCircle,
+  },
+  {
+    title: "Tasks & Comm",
+    url: "/management",
+    icon: Target,
   },
 ];
 

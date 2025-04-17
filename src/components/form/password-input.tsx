@@ -5,13 +5,17 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
-export default function PassowordInputs({ disabled }: { disabled?: boolean }) {
+type PageProperties={
+  disabled?: boolean | undefined
+  placeholder?: string
+}
+export default function PassowordInputs({ disabled, placeholder }: PageProperties) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div>
       <Label htmlFor="password" className="mb-1">
-        Senha:
+        Password:
       </Label>
       <div className="relative">
         <Input
@@ -19,7 +23,7 @@ export default function PassowordInputs({ disabled }: { disabled?: boolean }) {
           id="password"
           name="password"
           disabled={disabled}
-          placeholder="********"
+          placeholder={ placeholder ?? "*********"}
         />
         <button
           type="button"

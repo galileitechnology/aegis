@@ -6,12 +6,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        email: { label: "Email", type: "email" },
+        username: { label: "username", type: "username" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         const user = await findUserByCredentials(
-          credentials.email as string,
+          credentials.username as string,
           credentials.password as string
         );
 

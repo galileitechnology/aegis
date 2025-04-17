@@ -19,7 +19,7 @@ export async function getUsers() {
     const filteredUsers = users.filter(
       (user) =>
         user.id !== currentUserId &&
-        user.email !== "rodrigoantunestutz@gmail.com"
+        user.email !== ""
     );
     return filteredUsers;
   } catch (error) {

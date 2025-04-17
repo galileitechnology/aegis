@@ -26,6 +26,7 @@ export default function RegisterUser({
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    username: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,10 +49,6 @@ export default function RegisterUser({
     toast.success(result.message);
     setLoading(false);
     onSuccess?.();
-
-    if (!isAdmin) {
-      router.push("/confirmar");
-    }
   };
 
   return (
@@ -62,7 +59,7 @@ export default function RegisterUser({
 
       <div className="mb-3">
         <Label htmlFor="name" className="mb-1">
-          Nome:
+          Name:
         </Label>
         <Input
           name="name"
@@ -74,6 +71,22 @@ export default function RegisterUser({
           onChange={handleChange}
         />
       </div>
+
+      <div className="mb-3">
+        <Label htmlFor="name" className="mb-1">
+          Username:
+        </Label>
+        <Input
+          name="username"
+          type="text"
+          id="username"
+          disabled={loading}
+          placeholder="Insert Username"
+          value={formData.username}
+          onChange={handleChange}
+        />
+      </div>
+
 
       <div className="mb-3">
         <Label htmlFor="email" className="mb-1">
