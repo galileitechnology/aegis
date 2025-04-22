@@ -21,6 +21,8 @@ import {
   User,
   Users,
   Target,
+  Database,
+  LucideDatabase,
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,6 +49,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { BsGear } from "react-icons/bs";
+import { GrDatabase } from "react-icons/gr";
+import { IoExtensionPuzzleOutline } from "react-icons/io5";
 
 const items = [
   {
@@ -54,15 +58,25 @@ const items = [
     url: "/",
     icon: LayoutDashboard,
   },
-  {
+  /*{
     title: "Chat",
     url: "/chat",
     icon: MessageCircle,
-  },
+  },*/
   {
     title: "Tasks & Comm",
     url: "/management",
     icon: Target,
+  },
+  {
+    title: "Databases",
+    url: "/databases",
+    icon: GrDatabase,
+  },
+  {
+    title: "Solutions",
+    url: "/solutions",
+    icon: IoExtensionPuzzleOutline,
   },
 ];
 

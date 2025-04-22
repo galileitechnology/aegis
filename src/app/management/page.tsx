@@ -2,10 +2,6 @@ import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Menu } from "lucide-react";
 
-export const metadata = {
-  title: "Management | AEGIS",
-};
-
 export default function Layout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -20,7 +16,7 @@ export default function Layout({
         </SidebarTrigger>
         <AppSidebar />
       </aside>
-      <main className="w-full rounded-lg md:m-3 pt-3 text-white bg-neutral-950">
+      <main className="w-full p-9 pt-3 text-white bg-neutral-950">
         {children}
       </main>
     </SidebarProvider>
