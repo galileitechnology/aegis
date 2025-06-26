@@ -35,7 +35,7 @@ export default function Page() {
     } else {
       toast.success(result.message);
     }
-    setLoading(false);
+    setLoading(true);
     router.push("/dashboard");
   };
   return (

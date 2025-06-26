@@ -16,7 +16,7 @@ export default function Layout({
         </SidebarTrigger>
         <AppSidebar />
       </aside>
-      <main className="w-full p-9 pt-3 text-white bg-neutral-950">
+      <main className="w-full pt-3 text-white bg-neutral-950">
         {children}
       </main>
     </SidebarProvider>

@@ -49,14 +49,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { BsGear } from "react-icons/bs";
-import { GrDatabase } from "react-icons/gr";
-import { IoExtensionPuzzleOutline } from "react-icons/io5";
+import { GiShieldcomb } from "react-icons/gi";
+import { PiChartScatterBold } from "react-icons/pi";
+import { TbRadar2 } from "react-icons/tb";
+import { MdWarehouse } from "react-icons/md";
 
 const items = [
   {
     title: "Dashboard",
     url: "/",
-    icon: LayoutDashboard,
+    icon: PiChartScatterBold,
   },
   /*{
     title: "Chat",
@@ -64,19 +66,19 @@ const items = [
     icon: MessageCircle,
   },*/
   {
-    title: "Tasks & Comm",
-    url: "/management",
-    icon: Target,
-  },
-  {
-    title: "Databases",
-    url: "/databases",
-    icon: GrDatabase,
-  },
-  {
-    title: "Solutions",
+    title: "Sentry",
     url: "/solutions",
-    icon: IoExtensionPuzzleOutline,
+    icon: GiShieldcomb,
+  },
+  {
+    title: "Watcher",
+    url: "/docking",
+    icon: TbRadar2,
+  },
+  {
+    title: "Infrastructure",
+    url: "/datacenters",
+    icon: MdWarehouse,
   },
 ];
 
@@ -95,42 +97,16 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible={"icon"} variant={"sidebar"}>
-      <SidebarContent className="overflow-hidden bg-neutral-900">
+      <SidebarContent className="overflow-hidden bg-[#111111]">
         <SidebarGroup>
-          <SidebarHeader>
-            <SidebarGroupLabel className="flex gap-2 mt-2">
-              <Avatar>
-                <AvatarImage src="user.png" />
-                <AvatarFallback className="bg-gray-700 text-white text-2xl font-bold">
-                  {session ? (
-                    getInitials(session?.user?.name)
-                  ) : (
-                    <AiOutlineLoading3Quarters className="animate-spin w-5 h-5" />
-                  )}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h3 className="text-lg">
-                  {session
-                    ? getFirstTwoNames(session?.user?.name)
-                    : "Carregando..."}
-                </h3>
-                <p>Usuario</p>
-              </div>
-            </SidebarGroupLabel>
-            <SidebarSeparator className="mt-5" />
-            <SidebarTrigger className="absolute top-1 right-1 flex items-center gap-2">
-              <Menu /> Fechar Sidebar
-            </SidebarTrigger>
-          </SidebarHeader>
-          <SidebarGroupContent className="mt-5">
+          <SidebarGroupContent className="bg-[#111111] mt-5 relative top-29">
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link href={`${item.url}`}>
+                    <Link href={`/dashboard${item.url}`}>
                       <item.icon />
-                      <span>{item.title}</span>
+                      <span className="text-[14px]">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -139,7 +115,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="bg-neutral-900">
+      <SidebarFooter className="bg-[#111111]">
         <SidebarMenu>
           <Collapsible defaultOpen className="group/collapsible">
             <SidebarMenuItem>
@@ -172,6 +148,35 @@ export function AppSidebar() {
           </Collapsible>
         </SidebarMenu>
 
+        
+      </SidebarFooter>
+      <SidebarHeader className="bg-[#111111]">
+            <SidebarGroupLabel className="bg-[#111111] flex gap-2 mt-2">
+              <Avatar>
+                <AvatarImage src="user.png" />
+                <AvatarFallback className="bg-[#000000] text-[#dcdcdc] text-2xl font-bold">
+                  {session ? (
+                    getInitials(session?.user?.name)
+                  ) : (
+                    <AiOutlineLoading3Quarters className="animate-spin w-5 h-5" />
+                  )}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="text-lg">
+                  {session
+                    ? getFirstTwoNames(session?.user?.name)
+                    : "Carregando..."}
+                </h3>
+                <p>Usuario</p>
+              </div>
+            </SidebarGroupLabel>
+            <SidebarSeparator className="bg-[#5200ff] mt-5"/>
+            <SidebarTrigger className="bg-[#5200ff] absolute top-1 left-1 flex items-center gap-2">
+              <Menu /> Fechar Sidebar
+            </SidebarTrigger>
+          </SidebarHeader>
+
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={logoutAction}>
@@ -179,7 +184,6 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   );
 }

@@ -8,16 +8,16 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  email     String?  @unique
-  username  String   @unique
+  id        Int        @id @default(autoincrement())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  email     String?    @unique
+  username  String     @unique
   name      String
   password  String
-
-  RoomUser RoomUser[]
-  Message  Message[]
+  Schedule  Schedule[]
+  RoomUser  RoomUser[]
+  Message   Message[]
 
   @@map("users")
 }
@@ -29,10 +29,10 @@ model Chart {
 }
 
 model Data {
-  id      Int      @id @default(autoincrement())
+  id      Int    @id @default(autoincrement())
   title   String
   chartId Int
-  content   Chart @relation(fields: [chartId], references: [id])
+  content Chart  @relation(fields: [chartId], references: [id])
 }
 
 model Room {
@@ -71,4 +71,20 @@ model Message {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("messages")
+}
+
+model Schedule {
+  id            Int      @id @default(autoincrement())
+  typeId        Int
+  userId        Int
+  description   String
+  scheduledDate DateTime
+  status        String   @default("pending")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  cityId        Int
+  googleEventId String?
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@map("schedules")
 }

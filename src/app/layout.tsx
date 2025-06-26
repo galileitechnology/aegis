@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { Toaster } from "sonner";
 import { ProgressProvider } from "@bprogress/next/app";
+import { ReactFlowProvider } from "@xyflow/react";
 
 export default function RootLayout({
   children,
@@ -13,13 +14,14 @@ export default function RootLayout({
   return (
     <html lang="pt-br">
       <body className="dark bg-neutral-900">
-        <ProgressProvider
+       
+       <ProgressProvider
           color="#fff"
           options={{ showSpinner: false }}
           shallowRouting
         >
           <main>{children}</main>
-          <Toaster className="border-none"/>
+          <Toaster className="border-none" />
         </ProgressProvider>
       </body>
     </html>
