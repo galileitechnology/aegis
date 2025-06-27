@@ -117,7 +117,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="bg-[#111111]">
         <SidebarMenu>
-          <Collapsible defaultOpen className="group/collapsible">
+          <Collapsible className="group/collapsible">
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton>
