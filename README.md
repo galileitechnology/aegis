@@ -1,11 +1,17 @@
 # AEGIS System
 
-### System setup
+## System setup
 
 ```bash
 ### install all dependencies
 npm i
 ### install nodemon globally
 npm istall -g nodemon
-### start application
+```
+## Setup Database
+1: Go to /server/database.sql and copy the sql script
+2: Go to SQL editor at pgAdmin
+3: Paste the SQL script and run, it will create and seed the database with an admin user
+
+## Start application
 nodemon index
