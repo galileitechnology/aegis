@@ -13,6 +13,7 @@ npm istall -g nodemon
 2: Go to SQL editor at pgAdmin</br></br>
 3: Paste the SQL script and run, it will create and seed the database with an admin user
 
+
 ## Start application
 ```bash
 #start
