@@ -1,21 +1,116 @@
-# AEGIS System
+# Componente de Login e Registro de Usuarios
 
-## System setup
+### 1 - Instale das dependências
 
-```bash
-### install all dependencies
-npm i
-### install nodemon globally
-npm istall -g nodemon
+```shell
+    npm installl
 ```
-## Setup Database
-1: Go to /server/database.sql and copy the sql script</br></br>
-2: Go to SQL editor at pgAdmin</br></br>
-3: Paste the SQL script and run, it will create and seed the database with an admin user
 
+---
 
-## Start application
-```bash
-#start
-nodemon index
+### 2 - Crie o Token do Auth.js
+
+```shell
+    npx auth secret
+```
+
+---
+
+### 3 - Inicie o servidor de Desenvolvimento
+
+```shell
+    npm run dev
+```
+
+---
+
+### 4 - Criar banco de dados e usuario ROOT
+
+- Dentro do arquivo prisma/schema.prisma altere o provider para o banco de dados desejado
+
+```shell
+datasource db {
+    provider = "mysql"
+    url = env("DATABASE_URL")
+}
+```
+
+- Altere o string de conexão com o banco de dados no arquivo .env
+
+```shell
+DATABASE_URL="mysql://root@localhost:3306/sistema"
+```
+
+- Execute o comando o para criar um Prisma Client no projeto
+
+```shell
+npx prisma generate
+```
+
+- Crie o banco de dados e sincronize com o projeto
+
+```shell
+npx prisma db push
+```
+
+- Para criar um usuario ROOT altere as variáveis de ambiente com email, nome e senha desejados
+
+```shell
+ROOT_DATABASE_EMAIL="root@mail.com"
+ROOT_DATABASE_NAME="Administrador"
+ROOT_DATABASE_PASSWORD="123456789"
+```
+
+- Instale os Types no seu projeto
+
+```shell
+ npm install -D typescript ts-node @types/node
+```
+
+- Rode o seeder para criar o usuario no banco de dados
+
+```shell
+npx prisma db seed
+```
+
+---
+
+### 5 - Configurar servidor SMTP e Alterar visual do email enviado
+
+- Altere o .env com os dados do seu servidor SMTP
+
+```shell
+EMAIL_SERVER_HOST="smtp.gmail.com"
+EMAIL_SERVER_PORT="587"
+EMAIL_SERVER_FROM_ADDRESS="mail@mail.com"
+EMAIL_SERVER_PASSWORD="Sua senha"
+EMAIL_SERVER_FROM_NAME="Seu nome"
+```
+
+- Alterar visual de email
+
+    - Acesse a pasta Packages
+
+```shell
+    cd src/packages/
+```
+
+- Iniciar Servidor para visualização da Prévia de email
+
+```shell
+    npm run dev
+```
+
+---
+
+<br>
+<br>
+<br>
+
+### Caso queira excluir os dados do banco (CUIDADO)
+
+- Resetar banco de dados (irá excluir todos os dados do banco)
+
+```shell
+npx prisma migrate reset
 ```

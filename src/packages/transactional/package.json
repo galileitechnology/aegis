@@ -1,0 +1,19 @@
+{
+  "name": "transactional",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "email dev"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "react-email": "3.0.7"
+  },
+  "dependencies": {
+    "@react-email/components": "0.0.33",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  }
+}
