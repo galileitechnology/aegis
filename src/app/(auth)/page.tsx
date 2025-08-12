@@ -4,14 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import loginAction from "@/utils/auth/loginAction";
-import Form from "next/form";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { BsGearFill } from "react-icons/bs";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { Image } from "lucide-react";
 
 export default function Page() {
   const router = useRouter();
