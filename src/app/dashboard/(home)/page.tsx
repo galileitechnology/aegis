@@ -1,9 +1,14 @@
+"use client";
+
+import React from 'react';
+import LeafletMap from '@/components/LeafletMap';
+import 'leaflet/dist/leaflet.css';
 import { Button } from "@/components/ui/button";
 
 export default function Page() {
   return (
-  <div className="bg-transparent">
-    <div className="p-2 inline-flex gap-1 justify-center items-center">
+  <div className="p-2 bg-transparent">
+    <div className="inline-flex gap-1 justify-center items-center">
       <img src="/images/analytics logo.png" className="h-15 pointer-events-none"/>
       <p className="text-[#303030] text-[20px]">Analytics</p>
     </div>
@@ -38,6 +43,15 @@ export default function Page() {
         </div>
       </div>
     </div>
+     <div className="flex justify-center w-[900px] border-[3px] border-[#202020]">
+        <LeafletMap 
+          className="h-[400px] w-full"
+          center={[-5.103911, -42.764982]}
+          zoom={13}
+          markerPosition={[-5.103911, -42.764982]}
+          markerTitle="AOS Software"
+        />
+      </div>
   </div>
   )
 }
