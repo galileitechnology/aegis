@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import PasswordInput from "@/components/form/password-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,10 +36,10 @@ export default function Page() {
   };
   return (
     <div className="h-screen w-full relative flex flex-col gap-10 items-center justify-center p-5 bg-[#000]">
-        <img className="absolute left-0 bottom-0 md:w-1/4 h-[400px]" src="/images/layout.png" />
+        <img className="absolute left-0 bottom-0 h-[70%] w-[30%]" src="/images/layout.png" />
         <form
           onSubmit={handleSubmit}
-          className="z-10 w-full md:w-[400px] bg-[#000] py-10"
+          className="z-10 w-full md:w-[400px] bg-transparent py-10"
         >
           <div className="text-left inline-grid grid-cols-1">
             <h1 className="font-bold text-3xl">AEGIS</h1>

@@ -46,10 +46,9 @@ export default function Page() {
      <div className="flex justify-center w-[900px] border-[3px] border-[#202020]">
         <LeafletMap 
           className="h-[400px] w-full"
-          center={[-5.103911, -42.764982]}
-          zoom={13}
+          center={[10, 0]}
+          zoom={2}
           markerPosition={[-5.103911, -42.764982]}
-          markerTitle="AOS Software"
         />
       </div>
   </div>

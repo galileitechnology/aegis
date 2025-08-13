@@ -1,6 +1,13 @@
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Menu } from "lucide-react";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Jaicós | Folha de ponto",
+  description: "Resumo da folha de pontos de Jaicós",
+};
+
 
 export default function Layout({
   children,

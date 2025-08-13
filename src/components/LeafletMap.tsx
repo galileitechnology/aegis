@@ -14,11 +14,11 @@ interface MapSectionProps {
 
 const LeafletMap = ({
   className = 'flex align-middle justify-center h-[70%] w-[700px] border-[3px] border-[#202020]',
-  containerStyle = { backgroundColor: '#090909', height: '100%', width: '100%', filter: 'invert(0%) hue-rotate(180deg) brightness(95%) contrast(90%)' },
+  containerStyle = { backgroundColor: '#090909', height: '100%', width: '100%', },
   center = [0, 0],
   zoom = 2,
   markerPosition = [-5.103911, -42.764982],
-  markerTitle = "AOS Software"
+  markerTitle = "NEST Datacenter",
 }: MapSectionProps) => {
   const mapRef = React.useRef<L.Map | null>(null);
   const mapContainerRef = React.useRef<HTMLDivElement>(null);
@@ -29,8 +29,8 @@ const LeafletMap = ({
     const L = require('leaflet');
 
     const DefaultIcon = L.icon({
-      iconUrl: 'https://i.pinimg.com/736x/13/ce/b6/13ceb6fa0032a8e61da1e035df26c370.jpg',
-      iconSize: [29, 29],
+      iconUrl: './images/map_pointer.png',
+      iconSize: [35, 35],
     });
     L.Marker.prototype.options.icon = DefaultIcon;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import "./globals.css";
-
+import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import { ProgressProvider } from "@bprogress/next/app";
 import { ReactFlowProvider } from "@xyflow/react";
