@@ -18,6 +18,7 @@ export default function Page() {
         <p className="transform skew-x-340 text-[#dcdcdc]">&nbsp;Hardware</p>
       </Button> 
     </div>
+    
   </div>
   )
 }

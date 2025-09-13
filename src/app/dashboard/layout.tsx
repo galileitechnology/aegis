@@ -2,12 +2,24 @@ import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Menu } from "lucide-react";
 import { Metadata } from "next";
+import { ThemeProvider } from '@/components/ui/theme-provider';
 
 export const metadata: Metadata = {
-  title: "Jaicós | Folha de ponto",
+  title: "AEGIS | Dashboard",
   description: "Resumo da folha de pontos de Jaicós",
 };
 
+export function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
 
 export default function Layout({
   children,

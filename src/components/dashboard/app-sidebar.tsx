@@ -54,6 +54,7 @@ import { GiShieldcomb } from "react-icons/gi";
 import { PiChartScatterBold } from "react-icons/pi";
 import { TbRadar2 } from "react-icons/tb";
 import { MdWarehouse } from "react-icons/md";
+import { HiPencilSquare } from "react-icons/hi2";
 
 const items = [
   {
@@ -61,11 +62,11 @@ const items = [
     url: "/",
     icon: PiChartScatterBold,
   },
-  /*{
-    title: "Chat",
-    url: "/chat",
-    icon: MessageCircle,
-  },*/
+  {
+    title: "Builder",
+    url: "/builder",
+    icon: HiPencilSquare,
+  },
   {
     title: "Sentry",
     url: "/solutions",

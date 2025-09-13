@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import { TabProvider, useTabs, TabType } from '@/contexts/context-dashboard';
+import { useTabs, TabType } from '@/contexts/contexts';
 import 'leaflet/dist/leaflet.css';
 import { useState } from 'react';
 import BrowserTab from '@/components/tabs/browser-tabs';
-import TabDialog from '@/components/tabs/tabs-dashboard';
+import TabDialog from '@/components/tabs/tabs-builder';
 
-function DashboardContent() {
+export default function Dashboard() {
   const { tabs, activeTab, addTab, closeTab, setActiveTab } = useTabs();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -37,7 +37,7 @@ function DashboardContent() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className='w-full h-fit'>
-          <p className='text-[20px] text-[#707070]'>A E G I S &nbsp; / &nbsp; Dashboard</p>
+          <p className='text-[20px] text-[#707070]'>A E G I S &nbsp; / &nbsp; Builder</p>
         </div>
       </header>
 
@@ -57,13 +57,5 @@ function DashboardContent() {
         />
       )}
     </div>
-  );
-}
-
-export default function Dashboard() {
-  return (
-    <TabProvider>
-      <DashboardContent />
-    </TabProvider>
   );
 }
