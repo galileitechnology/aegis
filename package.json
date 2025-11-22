@@ -46,6 +46,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@xyflow/react": "^12.8.4",
     "autoprefixer": "^10.4.21",
+    "axios": "^1.13.2",
     "bcrypt": "^5.1.1",
     "bcrypt-ts": "^6.0.0",
     "class-variance-authority": "^0.7.1",

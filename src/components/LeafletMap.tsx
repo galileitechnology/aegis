@@ -1,6 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import 'leaflet/dist/leaflet.css';
@@ -26,6 +36,8 @@ const LeafletMap = ({
   const mapContainerRef = React.useRef<HTMLDivElement>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const markerRef = React.useRef<L.Marker | null>(null);
+  const dataConnector = () => {
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined' || !mapContainerRef.current) return;
@@ -33,7 +45,7 @@ const LeafletMap = ({
     const L = require('leaflet');
 
     const DefaultIcon = L.icon({
-      iconUrl: './images/map_pointer.png',
+      iconUrl: '../images/map_pointer.png',
       iconSize: [35, 35],
     });
     L.Marker.prototype.options.icon = DefaultIcon;
@@ -85,30 +97,27 @@ const LeafletMap = ({
         <SheetContent side="right" className="w-[400px] sm:w-[540px]">
           <SheetTitle>{markerTitle}</SheetTitle>
           <SheetDescription>
-            Details about {markerTitle}
+            Details and real time data about {markerTitle}
           </SheetDescription>
-          
-          <div className="mt-6">
-            <h3 className="font-semibold mb-2">Location Information</h3>
-            <p>Coordinates: {markerPosition[0]}, {markerPosition[1]}</p>
-
-            <div className="mt-4">
-              <h4 className="font-medium mb-2">Datacenter Details</h4>
-              <ul className="space-y-1 text-sm">
-                <li>• Status: Operational</li>
-                <li>• Capacity: 500 servers</li>
-                <li>• Location: Brazil</li>
-              </ul>
-            </div>
-          </div>
 
           <div className="mt-6 flex gap-2">
             <Button variant="outline" onClick={() => setIsSheetOpen(false)}>
               Close
             </Button>
-            <Button>
-              View Details
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className='bg-[#5200ff] text-[#fff] hover:bg-[#8c57ff]' onClick={dataConnector}>
+                  + Connect data pipeline
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    Teste
+                  </DialogTitle>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
           </div>
         </SheetContent>
       </Sheet>

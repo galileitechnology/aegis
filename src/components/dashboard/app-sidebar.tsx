@@ -151,35 +151,33 @@ export function AppSidebar() {
               </SidebarMenuItem>
             </Collapsible>
           </SidebarMenu>
-
-          
         </SidebarFooter>
-        <SidebarHeader className="bg-[#111111]">
-              <SidebarGroupLabel className="bg-[#111111] flex gap-2 mt-2">
-                <Avatar>
-                  <AvatarImage src="user.png" />
-                  <AvatarFallback className="bg-[#000000] text-[#dcdcdc] text-2xl font-bold">
-                    {session ? (
-                      getInitials(session?.user?.name)
-                    ) : (
-                      <AiOutlineLoading3Quarters className="animate-spin w-5 h-5" />
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="text-lg">
-                    {session
-                      ? getFirstTwoNames(session?.user?.name)
-                      : "Carregando..."}
-                  </h3>
-                  <p>Usuario</p>
-                </div>
-              </SidebarGroupLabel>
-              <SidebarSeparator className="bg-[#5200ff] mt-5"/>
-              <SidebarTrigger className="bg-[#5200ff] absolute top-1 left-1 flex items-center gap-2">
-                <Menu /> Fechar Sidebar
-              </SidebarTrigger>
-            </SidebarHeader>
+          <SidebarHeader className="bg-[#111111]">
+                <SidebarGroupLabel className="bg-[#111111] flex gap-2 mt-2">
+                  <Avatar>
+                    <AvatarImage src="user.png" />
+                    <AvatarFallback className="bg-[#000000] text-[#dcdcdc] text-2xl font-bold">
+                      {session ? (
+                        getInitials(session?.user?.name)
+                      ) : (
+                        <AiOutlineLoading3Quarters className="animate-spin w-5 h-5" />
+                      )}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="text-lg">
+                      {session
+                        ? getFirstTwoNames(session?.user?.name)
+                        : "Carregando..."}
+                    </h3>
+                    <p>Usuario</p>
+                  </div>
+                </SidebarGroupLabel>
+                <SidebarSeparator className="bg-[#5200ff] mt-5"/>
+                <SidebarTrigger className="bg-[#5200ff] absolute top-1 left-1 flex items-center gap-2">
+                  <Menu /> Fechar Sidebar
+                </SidebarTrigger>
+          </SidebarHeader>
 
           <SidebarMenu>
             <SidebarMenuItem>

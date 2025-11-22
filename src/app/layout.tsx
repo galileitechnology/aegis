@@ -2,7 +2,7 @@
 
 import "./globals.css";
 import { Toaster } from "sonner";
-import { ProgressProvider } from "@bprogress/next/app";
+import { ProgressProvider } from "@bprogress/react";
 
 export default function RootLayout({
   children,

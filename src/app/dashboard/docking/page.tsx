@@ -1,33 +1,69 @@
-import { LucideDatabaseBackup } from "lucide-react";
-import { columns, Payment } from "./columns"
-import { DataTable } from "./data-table"
-import { Button } from "@/components/ui/button"
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
+'use client';
 
+import React from 'react';
+import { TabProvider, useTabs, TabType } from '@/contexts/context-watcher';
+import 'leaflet/dist/leaflet.css';
+import { useState } from 'react';
+import BrowserTab from '@/components/tabs/browser-tabs';
+import TabDialog from '@/components/tabs/tabs-watcher';
 
-async function getData(): Promise<Payment[]> {
-  // Fetch data from your API here.
-  return [
-    {
-      id: "728ed52f",
-      status: "Online",
-      Database: "farm_hive",
-      email: "m@example.com",
-    }
-  ];
-}
+function DashboardContent() {
+  const { tabs, activeTab, addTab, closeTab, setActiveTab } = useTabs();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-export default async function Page() {
-  const data = await getData()
+  const handleAddTabClick = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handleAddTab = (type: TabType) => {
+    addTab(type);
+    setIsDialogOpen(false);
+  };
+
+  const defaultContent = (
+    <div className="empty-state">
+      <h3>Área vazia!</h3>
+      <p>Comece adicionando um espaço de trabalho</p>
+      <button 
+        className="primary-button"
+        onClick={handleAddTabClick}
+      >
+        Adicionar
+      </button>
+    </div>
+  );
 
   return (
-    <div>
-      <div className="Container p-5">
-        <div className="relative w-20 pb-6">
-          <Button className="sticky justify-center" variant="outline"><LucideDatabaseBackup />Update Databases</Button>
+    <div className="dashboard-container">
+      <header className="dashboard-header">
+        <div className='w-full h-fit'>
+          <p className='text-[20px] text-[#707070]'>A E G I S &nbsp; / &nbsp; Watcher</p>
         </div>
-        <DataTable columns={columns} data={data} />
-      </div>
+      </header>
+
+      <BrowserTab
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onTabClose={closeTab}
+        onAddTab={handleAddTabClick}
+        defaultContent={defaultContent}
+      />
+
+      {isDialogOpen && (
+        <TabDialog
+          onClose={() => setIsDialogOpen(false)}
+          onSelect={handleAddTab}
+        />
+      )}
     </div>
-  )
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <TabProvider>
+      <DashboardContent />
+    </TabProvider>
+  );
 }

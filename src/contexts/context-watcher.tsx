@@ -1,35 +1,14 @@
 'use client'
 
-import LeafletMap from '@/components/LeafletMap';
-import 'leaflet/dist/leaflet.css';
 import React, { createContext, useContext, useState, ReactNode} from 'react';
 import { Tab } from '@/components/tabs/browser-tabs';
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
 
-export type TabType = 'dashboard';
+export type TabType = 'watcher';
 
 const DashboardContent = () => (
-<div>
-    <div 
-    className="mt-6 w-[900px] overflow-hidden"
-    >
-    <LeafletMap 
-    className="h-[400px] w-full"
-    />
-    </div>
-</div>
+  <div>
+    <p>text</p>
+  </div>
 );
 
 interface TabContextType {
@@ -48,7 +27,7 @@ export function TabProvider({ children }: { children: ReactNode }) {
 
   const addTab = (type: TabType) => {
     const tabConfig = {
-      dashboard: { title: 'Dashboard', content: <DashboardContent /> },
+      watcher: { title: 'URL Monitoring', content: <DashboardContent /> },
     };
 
     const newTab: Tab = {
@@ -90,14 +69,3 @@ export function useTabs() {
   }
   return context;
 }
-
-// Main App component
-export default function App() {
-  return (
-    <TabProvider>
-      {/* Your main app content that uses tabs */}
-      <div>Your app content here</div>
-    </TabProvider>
-  );
-}
-

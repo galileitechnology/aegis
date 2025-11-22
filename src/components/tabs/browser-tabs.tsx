@@ -16,6 +16,7 @@ interface BrowserTabProps {
   onTabClose: (id: string) => void;
   onAddTab: () => void;
   defaultContent?: ReactNode;
+  keepAlive?: boolean;
 }
 
 export default function BrowserTab({
@@ -24,11 +25,11 @@ export default function BrowserTab({
   onTabChange,
   onTabClose,
   onAddTab,
-  defaultContent
+  defaultContent,
+  keepAlive = true
 }: BrowserTabProps) {
   return (
     <div className="browser-tab-container">
-      {/* Tab Bar */}
       <div className="browser-tab-bar">
         <div className="tabs-container">
           {tabs.map(tab => (
@@ -60,12 +61,26 @@ export default function BrowserTab({
       <div className="tab-content">
         {tabs.length === 0 ? (
           defaultContent
-        ) : (
+        ) : keepAlive ? (
           tabs.map(tab => (
-            <div key={tab.id} className={activeTab === tab.id ? 'tab-pane active' : 'tab-pane'}>
+            <div 
+              key={tab.id} 
+              className={`tab-pane ${activeTab === tab.id ? 'active' : ''}`}
+              style={{ 
+                display: activeTab === tab.id ? 'block' : 'none' 
+              }}
+            >
               {tab.content}
             </div>
           ))
+        ) : (
+          tabs.map(tab => 
+            activeTab === tab.id ? (
+              <div key={tab.id} className="tab-pane active">
+                {tab.content}
+              </div>
+            ) : null
+          )
         )}
       </div>
     </div>

@@ -6,7 +6,6 @@ import { ThemeProvider } from '@/components/ui/theme-provider';
 
 export const metadata: Metadata = {
   title: "AEGIS | Dashboard",
-  description: "Resumo da folha de pontos de Jaicós",
 };
 
 export function RootLayout({ children }: { children: React.ReactNode }) {
