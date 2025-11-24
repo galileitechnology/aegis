@@ -4,10 +4,10 @@ import Link from "next/link";
 
 import { useEffect, useState } from "react";
 import { Session } from "@/interfaces/session";
-
 import logoutAction from "@/utils/auth/logoutAction";
 import { getFirstTwoNames } from "@/utils/getFirstTwoNames";
-
+import Offnsr from "@/public/icons/offnsr.svg";
+import Infrastructure from "@/public/icons/infrastructure.svg"
 import { getInitials } from "@/utils/getInitials";
 
 import {
@@ -80,8 +80,13 @@ const items = [
   {
     title: "Infrastructure",
     url: "/datacenters",
-    icon: MdWarehouse,
+    icon: Infrastructure,
   },
+  {
+    title: "OFFNSR",
+    url: "/offnsr",
+    icon: Offnsr,
+  }
 ];
 
 export function AppSidebar() {
@@ -109,7 +114,7 @@ export function AppSidebar() {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
                       <Link href={`/dashboard${item.url}`}>
-                        <item.icon />
+                        <img src={item.icon.src} alt={item.title} className="w-8 h-8" />
                         <span className="text-[14px]">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>

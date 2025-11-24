@@ -1,37 +1,68 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
+// Interface matching the PostgreSQL single table structure
+interface UrlMonitor {
+  id?: number;
+  url: string;
+  name?: string;
+  current_status: 'checking' | 'up' | 'down' | 'error';
+  last_status_code?: number;
+  last_response_time_ms?: number;
+  last_error_message?: string;
+  check_interval_seconds: number;
+  is_monitoring_active: boolean;
+  total_checks: number;
+  successful_checks: number;
+  uptime_percentage: number;
+  recent_checks: UrlCheck[]; // This will be stored as JSONB in the database
+  last_checked_at?: Date;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
 interface UrlCheck {
   timestamp: Date;
   status: 'up' | 'down' | 'error';
-  responseTime?: number;
-  error?: string;
-}
-
-interface UrlStatus {
-  url: string;
-  currentStatus: 'checking' | 'up' | 'down' | 'error';
-  history: UrlCheck[];
-  lastChecked?: Date;
-  currentResponseTime?: number;
-  uptimePercentage: number;
+  response_time_ms?: number;
+  status_code?: number;
+  error_message?: string;
 }
 
 const UrlMonitor: React.FC = () => {
   const [urlInput, setUrlInput] = useState('');
-  const [urlStatuses, setUrlStatuses] = useState<UrlStatus[]>([]);
-  const [isMonitoring, setIsMonitoring] = useState(false);
+  const [urlMonitors, setUrlMonitors] = useState<UrlMonitor[]>([]);
+  const [isMonitoring, setIsMonitoring] = useState(true);
   const [checkInterval, setCheckInterval] = useState(30000);
+  const [loading, setLoading] = useState(true);
   
-  const urlStatusesRef = useRef(urlStatuses);
+  const urlMonitorsRef = useRef(urlMonitors);
   const isMonitoringRef = useRef(isMonitoring);
   const checkIntervalRef = useRef(checkInterval);
 
   useEffect(() => {
-    urlStatusesRef.current = urlStatuses;
+    urlMonitorsRef.current = urlMonitors;
     isMonitoringRef.current = isMonitoring;
     checkIntervalRef.current = checkInterval;
-  }, [urlStatuses, isMonitoring, checkInterval]);
+  }, [urlMonitors, isMonitoring, checkInterval]);
+
+  // Load URL monitors from database on component mount
+  useEffect(() => {
+    loadUrlMonitors();
+  }, []);
+
+  const loadUrlMonitors = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/api/urlmonitor');
+      setUrlMonitors(response.data);
+    } catch (error) {
+      console.error('Error loading URL monitors:', error);
+      alert('Failed to load URL monitors from database');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validateUrl = (url: string): boolean => {
     try {
@@ -67,7 +98,12 @@ const UrlMonitor: React.FC = () => {
     return statusTexts[statusCode] || 'Unknown Status';
   };
 
-  const checkUrl = useCallback(async (url: string): Promise<Omit<UrlCheck, 'timestamp'>> => {
+  const checkUrl = useCallback(async (url: string): Promise<{
+    status: 'up' | 'down' | 'error';
+    response_time_ms?: number;
+    status_code?: number;
+    error_message?: string;
+  }> => {
     const startTime = Date.now();
     
     try {
@@ -94,8 +130,8 @@ const UrlMonitor: React.FC = () => {
       if (isUp && !isLikelyProxyError) {
         return {
           status: 'up',
-          responseTime: directResponseTime,
-          error: undefined
+          response_time_ms: directResponseTime,
+          status_code: directResponse.status
         };
       }
       
@@ -116,8 +152,8 @@ const UrlMonitor: React.FC = () => {
           });
           return {
             success: response.status >= 200 && response.status < 300,
-            responseTime: Date.now() - headStartTime,
-            status: response.status,
+            response_time_ms: Date.now() - headStartTime,
+            status_code: response.status,
             method: 'HEAD'
           };
         } catch {
@@ -136,7 +172,7 @@ const UrlMonitor: React.FC = () => {
           });
           return {
             success: true,
-            responseTime: Date.now() - fetchStartTime,
+            response_time_ms: Date.now() - fetchStartTime,
             method: 'no-cors'
           };
         } catch {
@@ -158,8 +194,8 @@ const UrlMonitor: React.FC = () => {
           if (actualStatus) {
             return {
               success: actualStatus >= 200 && actualStatus < 300,
-              responseTime: Date.now() - proxyStartTime,
-              status: actualStatus,
+              response_time_ms: Date.now() - proxyStartTime,
+              status_code: actualStatus,
               method: 'allorigins'
             };
           }
@@ -177,8 +213,8 @@ const UrlMonitor: React.FC = () => {
         if (result.success) {
           return {
             status: 'up',
-            responseTime: result.responseTime,
-            error: undefined
+            response_time_ms: result.response_time_ms,
+            status_code: result.status_code
           };
         }
       } catch (error) {
@@ -190,8 +226,8 @@ const UrlMonitor: React.FC = () => {
     const responseTime = Date.now() - startTime;
     return {
       status: 'down',
-      responseTime,
-      error: 'All connection methods failed - Site appears to be down'
+      response_time_ms: responseTime,
+      error_message: 'All connection methods failed - Site appears to be down'
     };
   }, []);
 
@@ -200,41 +236,78 @@ const UrlMonitor: React.FC = () => {
       const checkResult = await checkUrl(url);
       const newCheck: UrlCheck = {
         timestamp: new Date(),
-        ...checkResult
+        status: checkResult.status,
+        response_time_ms: checkResult.response_time_ms,
+        status_code: checkResult.status_code,
+        error_message: checkResult.error_message
       };
 
-      setUrlStatuses(prev => 
-        prev.map(status => {
-          if (status.url === url) {
-            const newHistory = [...status.history, newCheck].slice(-50);
-            const upCount = newHistory.filter(check => check.status === 'up').length;
-            const uptimePercentage = newHistory.length > 0 ? (upCount / newHistory.length) * 100 : 0;
+      // Find the monitor to update
+      const monitorToUpdate = urlMonitorsRef.current.find(m => m.url === url);
+      if (!monitorToUpdate || !monitorToUpdate.id) return;
 
+      const newRecentChecks = [...monitorToUpdate.recent_checks, newCheck].slice(-50);
+      const upCount = newRecentChecks.filter(check => check.status === 'up').length;
+      const uptimePercentage = newRecentChecks.length > 0 ? 
+        (upCount / newRecentChecks.length) * 100 : 0;
+
+      const totalChecks = monitorToUpdate.total_checks + 1;
+      const successfulChecks = monitorToUpdate.successful_checks + (checkResult.status === 'up' ? 1 : 0);
+
+      const updatedMonitor = {
+        current_status: checkResult.status,
+        last_status_code: checkResult.status_code,
+        last_response_time_ms: checkResult.response_time_ms,
+        last_error_message: checkResult.error_message,
+        last_checked_at: new Date(),
+        total_checks: totalChecks,
+        successful_checks: successfulChecks,
+        uptime_percentage: uptimePercentage,
+        recent_checks: newRecentChecks,
+      };
+
+      // Update in database
+      await axios.put(`/api/urlmonitor?id=${monitorToUpdate.id}`, updatedMonitor);
+
+      // Update local state
+      setUrlMonitors(prev => 
+        prev.map(monitor => {
+          if (monitor.url === url) {
             return {
-              ...status,
-              currentStatus: checkResult.status,
-              currentResponseTime: checkResult.responseTime,
-              lastChecked: new Date(),
-              history: newHistory,
-              uptimePercentage
+              ...monitor,
+              ...updatedMonitor,
+              updated_at: new Date()
             };
           }
-          return status;
+          return monitor;
         })
       );
     } catch (error) {
       console.error(`Error checking URL ${url}:`, error);
-      const responseTime = Date.now();
-      setUrlStatuses(prev => 
-        prev.map(status => 
-          status.url === url 
+      
+      // Find the monitor to update
+      const monitorToUpdate = urlMonitorsRef.current.find(m => m.url === url);
+      if (!monitorToUpdate || !monitorToUpdate.id) return;
+
+      const errorUpdate = {
+        current_status: 'error' as const,
+        last_checked_at: new Date(),
+        last_error_message: 'Check failed - possible network issue',
+      };
+
+      // Update in database
+      await axios.put(`/api/urlmonitor?id=${monitorToUpdate.id}`, errorUpdate);
+
+      // Update local state
+      setUrlMonitors(prev => 
+        prev.map(monitor => 
+          monitor.url === url 
             ? { 
-                ...status, 
-                currentStatus: 'error' as const,
-                lastChecked: new Date(),
-                error: 'Check failed - possible network issue'
+                ...monitor, 
+                ...errorUpdate,
+                updated_at: new Date()
               }
-            : status
+            : monitor
         )
       );
     }
@@ -249,23 +322,25 @@ const UrlMonitor: React.FC = () => {
     }
 
     const performCheck = async () => {
-      const currentStatuses = urlStatusesRef.current;
-      if (currentStatuses.length === 0) return;
+      const currentMonitors = urlMonitorsRef.current;
+      if (currentMonitors.length === 0) return;
 
       // Update checking status for all URLs
-      setUrlStatuses(prev => prev.map(status => ({
-        ...status,
-        currentStatus: 'checking' as const
+      setUrlMonitors(prev => prev.map(monitor => ({
+        ...monitor,
+        current_status: 'checking' as const
       })));
 
       // Check all URLs in parallel with better error handling
-      const checkPromises = currentStatuses.map(async (status) => {
-        try {
-          await checkSingleUrl(status.url);
-        } catch (error) {
-          console.error(`Failed to check ${status.url}:`, error);
-        }
-      });
+      const checkPromises = currentMonitors
+        .filter(monitor => monitor.is_monitoring_active)
+        .map(async (monitor) => {
+          try {
+            await checkSingleUrl(monitor.url);
+          } catch (error) {
+            console.error(`Failed to check ${monitor.url}:`, error);
+          }
+        });
 
       await Promise.allSettled(checkPromises);
     };
@@ -286,7 +361,7 @@ const UrlMonitor: React.FC = () => {
 
   // Main monitoring effect
   useEffect(() => {
-    if (isMonitoring && urlStatuses.length > 0) {
+    if (isMonitoring && urlMonitors.length > 0) {
       startMonitoring();
     } else {
       stopMonitoring();
@@ -295,10 +370,10 @@ const UrlMonitor: React.FC = () => {
     return () => {
       stopMonitoring();
     };
-  }, [isMonitoring, urlStatuses.length, startMonitoring, stopMonitoring]);
+  }, [isMonitoring, urlMonitors.length, startMonitoring, stopMonitoring]);
 
   useEffect(() => {
-    if (isMonitoring && urlStatuses.length > 0) {
+    if (isMonitoring && urlMonitors.length > 0) {
       startMonitoring();
     }
   }, [checkInterval, isMonitoring, startMonitoring]);
@@ -312,30 +387,68 @@ const UrlMonitor: React.FC = () => {
       return;
     }
 
-    if (urlStatuses.some(status => status.url === trimmedUrl)) {
+    if (urlMonitors.some(monitor => monitor.url === trimmedUrl)) {
       alert('This URL is already being monitored');
       return;
     }
 
-    const newUrlStatus: UrlStatus = {
-      url: trimmedUrl,
-      currentStatus: 'checking',
-      history: [],
-      uptimePercentage: 0
-    };
+    try {
+      const response = await axios.post('/api/urlmonitor', {
+        url: trimmedUrl,
+        check_interval_seconds: checkInterval / 1000,
+      });
 
-    setUrlStatuses(prev => [...prev, newUrlStatus]);
-    setUrlInput('');
+      const newUrlMonitor = response.data;
+      setUrlMonitors(prev => [...prev, newUrlMonitor]);
+      setUrlInput('');
 
-    await checkSingleUrl(trimmedUrl);
+      // Perform initial check
+      await checkSingleUrl(trimmedUrl);
+    } catch (error) {
+      console.error('Error adding URL monitor:', error);
+      alert('Failed to add URL monitor to database');
+    }
   };
 
-  const removeUrl = (urlToRemove: string) => {
-    setUrlStatuses(prev => prev.filter(status => status.url !== urlToRemove));
+  const removeUrl = async (urlToRemove: string) => {
+    const monitorToRemove = urlMonitors.find(m => m.url === urlToRemove);
+    if (!monitorToRemove?.id) return;
+
+    try {
+      await axios.delete(`/api/urlmonitor?id=${monitorToRemove.id}`);
+      setUrlMonitors(prev => prev.filter(monitor => monitor.url !== urlToRemove));
+    } catch (error) {
+      console.error('Error removing URL monitor:', error);
+      alert('Failed to remove URL monitor from database');
+    }
   };
 
-  const toggleMonitoring = () => {
-    if (urlStatuses.length === 0) {
+  const toggleUrlMonitoring = async (url: string) => {
+    const monitorToUpdate = urlMonitors.find(m => m.url === url);
+    if (!monitorToUpdate?.id) return;
+
+    const newMonitoringStatus = !monitorToUpdate.is_monitoring_active;
+
+    try {
+      await axios.put(`/api/urlmonitor?id=${monitorToUpdate.id}`, {
+        is_monitoring_active: newMonitoringStatus
+      });
+
+      setUrlMonitors(prev => 
+        prev.map(monitor => 
+          monitor.url === url 
+            ? { ...monitor, is_monitoring_active: newMonitoringStatus }
+            : monitor
+        )
+      );
+    } catch (error) {
+      console.error('Error updating monitoring status:', error);
+      alert('Failed to update monitoring status in database');
+    }
+  };
+
+  const toggleGlobalMonitoring = () => {
+    if (urlMonitors.length === 0) {
       alert('Please add at least one URL to monitor');
       return;
     }
@@ -343,15 +456,17 @@ const UrlMonitor: React.FC = () => {
   };
 
   const handleManualCheck = async () => {
-    if (urlStatuses.length === 0) return;
+    if (urlMonitors.length === 0) return;
     
-    setUrlStatuses(prev => prev.map(status => ({
-      ...status,
-      currentStatus: 'checking' as const
+    setUrlMonitors(prev => prev.map(monitor => ({
+      ...monitor,
+      current_status: 'checking' as const
     })));
 
     await Promise.allSettled(
-      urlStatuses.map(status => checkSingleUrl(status.url))
+      urlMonitors
+        .filter(monitor => monitor.is_monitoring_active)
+        .map(monitor => checkSingleUrl(monitor.url))
     );
   };
 
@@ -361,7 +476,7 @@ const UrlMonitor: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: UrlStatus['currentStatus']) => {
+  const getStatusColor = (status: UrlMonitor['current_status']) => {
     switch (status) {
       case 'up': return 'bg-green-500';
       case 'down': return 'bg-yellow-500';
@@ -371,7 +486,7 @@ const UrlMonitor: React.FC = () => {
     }
   };
 
-  const getUrlStatusText = (status: UrlStatus['currentStatus']) => {
+  const getUrlStatusText = (status: UrlMonitor['current_status']) => {
     switch (status) {
       case 'up': return 'Up';
       case 'down': return 'Down';
@@ -381,15 +496,48 @@ const UrlMonitor: React.FC = () => {
     }
   };
 
-  const clearHistory = (url: string) => {
-    setUrlStatuses(prev => 
-      prev.map(status => 
-        status.url === url 
-          ? { ...status, history: [], uptimePercentage: 0 }
-          : status
-      )
-    );
+  const clearHistory = async (url: string) => {
+    const monitorToUpdate = urlMonitors.find(m => m.url === url);
+    if (!monitorToUpdate?.id) return;
+
+    try {
+      await axios.put(`/api/urlmonitor?id=${monitorToUpdate.id}`, {
+        recent_checks: [],
+        uptime_percentage: 0,
+        total_checks: 0,
+        successful_checks: 0,
+      });
+
+      setUrlMonitors(prev => 
+        prev.map(monitor => 
+          monitor.url === url 
+            ? { 
+                ...monitor, 
+                recent_checks: [], 
+                uptime_percentage: 0,
+                total_checks: 0,
+                successful_checks: 0,
+                updated_at: new Date()
+              }
+            : monitor
+        )
+      );
+    } catch (error) {
+      console.error('Error clearing history:', error);
+      alert('Failed to clear history in database');
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 max-w-6xl mx-auto">
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="text-gray-500 mt-4">Loading URL monitors...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -438,7 +586,7 @@ const UrlMonitor: React.FC = () => {
             </label>
             <div className="flex gap-2 flex-wrap">
               <button
-                onClick={toggleMonitoring}
+                onClick={toggleGlobalMonitoring}
                 className={`px-4 py-2 transition-colors ${
                   isMonitoring 
                     ? 'bg-red-600 hover:bg-red-800 cursor-pointer' 
@@ -451,7 +599,7 @@ const UrlMonitor: React.FC = () => {
               <button
                 onClick={handleManualCheck}
                 className="cursor-pointer px-4 py-2 text-white hover:bg-[#5200ff] transition-colors border-1 border-[#505050]"
-                disabled={urlStatuses.some(status => status.currentStatus === 'checking') || urlStatuses.length === 0}
+                disabled={urlMonitors.some(monitor => monitor.current_status === 'checking') || urlMonitors.length === 0}
               >
                 Check Now
               </button>
@@ -507,21 +655,24 @@ const UrlMonitor: React.FC = () => {
           </p>
         </div>
 
-        {urlStatuses.length > 0 && (
+        {urlMonitors.length > 0 && (
           <div className="border-t pt-4">
             <div className="flex items-center gap-4 text-sm">
               <span className="font-medium">Summary:</span>
               <span className="text-green-600">
-                Up: {urlStatuses.filter(s => s.currentStatus === 'up').length}
+                Up: {urlMonitors.filter(s => s.current_status === 'up').length}
               </span>
               <span className="text-yellow-600">
-                Down: {urlStatuses.filter(s => s.currentStatus === 'down').length}
+                Down: {urlMonitors.filter(s => s.current_status === 'down').length}
               </span>
               <span className="text-red-600">
-                Error: {urlStatuses.filter(s => s.currentStatus === 'error').length}
+                Error: {urlMonitors.filter(s => s.current_status === 'error').length}
               </span>
               <span className="text-blue-600">
-                Checking: {urlStatuses.filter(s => s.currentStatus === 'checking').length}
+                Checking: {urlMonitors.filter(s => s.current_status === 'checking').length}
+              </span>
+              <span className="text-gray-400">
+                Total: {urlMonitors.length}
               </span>
             </div>
           </div>
@@ -529,52 +680,67 @@ const UrlMonitor: React.FC = () => {
       </div>
 
       <div className="grid gap-6">
-        {urlStatuses.map((urlStatus) => (
-          <div key={urlStatus.url} className="bg-[#191919] shadow-sm border p-6">
+        {urlMonitors.map((monitor) => (
+          <div key={monitor.id || monitor.url} className="bg-[#191919] shadow-sm border p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3 flex-1">
-                <div className={`w-3 h-3 rounded-full ${getStatusColor(urlStatus.currentStatus)}`} />
+                <div className={`w-3 h-3 rounded-full ${getStatusColor(monitor.current_status)}`} />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg break-all">{urlStatus.url}</h3>
+                  <h3 className="font-semibold text-lg break-all">{monitor.url}</h3>
                   <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                    <span className={`font-medium ${
-                      urlStatus.currentStatus === 'up' ? 'text-green-600' :
-                      urlStatus.currentStatus === 'down' ? 'text-yellow-600' :
-                      urlStatus.currentStatus === 'error' ? 'text-red-600' :
-                      'text-blue-600'
-                    }`}>
-                      {getUrlStatusText(urlStatus.currentStatus)}
+                  <span className={`font-medium ${
+                    monitor.current_status === 'up' ? 'text-green-600' :
+                    monitor.current_status === 'down' ? 'text-yellow-600' :
+                    monitor.current_status === 'error' ? 'text-red-600' :
+                    'text-blue-600'
+                  }`}>
+                    {getUrlStatusText(monitor.current_status)}
+                  </span>
+                  <span className='text-gray-400'>Uptime: {Number(monitor.uptime_percentage).toFixed(1)}%</span>
+                  <span className='text-gray-400'>Checks: {Number(monitor.total_checks)}</span>
+                  {monitor.last_response_time_ms && (
+                    <span className='text-gray-400'>Response: {Number(monitor.last_response_time_ms)}ms</span>
+                  )}
+                  {monitor.last_checked_at && (
+                    <span className="text-xs text-gray-400">
+                      Last: {new Date(monitor.last_checked_at).toLocaleTimeString()}
                     </span>
-                    <span className='text-gray-400'>Uptime: {urlStatus.uptimePercentage.toFixed(1)}%</span>
-                    <span className='text-gray-400'>Checks: {urlStatus.history.length}</span>
-                    {urlStatus.currentResponseTime && (
-                      <span className='text-gray-400'>Response: {urlStatus.currentResponseTime}ms</span>
-                    )}
-                    {urlStatus.lastChecked && (
-                      <span className="text-xs text-gray-400">
-                        Last: {urlStatus.lastChecked.toLocaleTimeString()}
-                      </span>
-                    )}
-                  </div>
+                  )}
+                  {!monitor.is_monitoring_active && (
+                    <span className="text-xs text-yellow-500 bg-yellow-100 px-2 py-1 rounded">
+                      PAUSED
+                    </span>
+                  )}
+                </div>
                 </div>
               </div>
               
               <div className="flex gap-2 ml-4">
                 <button
-                  onClick={() => checkSingleUrl(urlStatus.url)}
+                  onClick={() => checkSingleUrl(monitor.url)}
                   className="px-3 py-1 bg-[#191919] hover:bg-[#5200ff] text-white text-sm transition-colors border-1 border-[#505050] cursor-pointer"
-                  disabled={urlStatus.currentStatus === 'checking'}
+                  disabled={monitor.current_status === 'checking'}
                 >
                   Check
                 </button>
                 <button
-                  onClick={() => clearHistory(urlStatus.url)}
+                  onClick={() => toggleUrlMonitoring(monitor.url)}
+                  className={`px-3 py-1 text-white text-sm transition-colors border-1 border-[#505050] cursor-pointer ${
+                    monitor.is_monitoring_active 
+                      ? 'bg-[#5200ff] hover:bg-[#5230ff]' 
+                      : 'bg-[#191919] hover:bg-[#5200ff]'
+                  }`}
+                >
+                  {monitor.is_monitoring_active ? 'Pause' : 'Resume'}
+                </button>
+                <button
+                  onClick={() => clearHistory(monitor.url)}
                   className="px-3 py-1 bg-[#191919] hover:bg-[#191919] text-white text-sm transition-colors border-1 border-[#505050] cursor-pointer"
                 >
                   Clear History
                 </button>
                 <button
-                  onClick={() => removeUrl(urlStatus.url)}
+                  onClick={() => removeUrl(monitor.url)}
                   className="px-3 py-1 bg-[#191919] hover:bg-[red] text-white text-sm transition-colors border-1 border-[#505050] cursor-pointer"
                 >
                   Remove
@@ -582,25 +748,25 @@ const UrlMonitor: React.FC = () => {
               </div>
             </div>
 
-            {urlStatus.history.length > 0 && (
+            {monitor.recent_checks.length > 0 && (
               <>
                 <div className="mb-3">
                   <h4 className="font-medium text-[#fff] mb-2">Recent History (Last 50 checks)</h4>
                   <div className="flex items-end gap-1 h-8">
-                    {urlStatus.history.slice(-20).map((check, index) => (
+                    {monitor.recent_checks.slice(-20).map((check, index) => (
                       <div
-                        key={index}
-                        className={`flex-1 ${
-                          check.status === 'up' ? 'bg-green-400' :
-                          check.status === 'down' ? 'bg-yellow-400' :
-                          'bg-red-400'
-                        } transition-all hover:opacity-80`}
-                        style={{ 
-                          height: check.responseTime 
-                            ? `${Math.min(check.responseTime / 50, 100)}%` 
-                            : '20%' 
-                        }}
-                        title={`${check.timestamp.toLocaleTimeString()} - ${check.status} - ${check.responseTime}ms - ${check.error || 'No error'}`}
+                      key={index}
+                      className={`flex-1 ${
+                        check.status === 'up' ? 'bg-green-400' :
+                        check.status === 'down' ? 'bg-yellow-400' :
+                        'bg-red-400'
+                      } transition-all hover:opacity-80`}
+                      style={{ 
+                        height: check.response_time_ms 
+                          ? `${Math.min(Number(check.response_time_ms) / 50, 100)}%` 
+                          : '20%' 
+                      }}
+                      title={`${new Date(check.timestamp).toLocaleTimeString()} - ${check.status} - ${Number(check.response_time_ms)}ms - ${check.error_message || 'No error'}`}
                       />
                     ))}
                   </div>
@@ -615,13 +781,14 @@ const UrlMonitor: React.FC = () => {
                           <th className="text-left py-2">Time</th>
                           <th className="text-left py-2">Status</th>
                           <th className="text-left py-2">Response Time</th>
+                          <th className="text-left py-2">Status Code</th>
                           <th className="text-left py-2">Error</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {[...urlStatus.history].reverse().slice(0, 10).map((check, index) => (
+                        {[...monitor.recent_checks].reverse().slice(0, 10).map((check, index) => (
                           <tr key={index} className="border-b">
-                            <td className="py-2">{check.timestamp.toLocaleTimeString()}</td>
+                            <td className="py-2">{new Date(check.timestamp).toLocaleTimeString()}</td>
                             <td className="py-2">
                               <span className={`inline-flex items-center gap-1 ${
                                 check.status === 'up' ? 'text-green-600' :
@@ -636,8 +803,9 @@ const UrlMonitor: React.FC = () => {
                                 {check.status.toUpperCase()}
                               </span>
                             </td>
-                            <td className="py-2">{check.responseTime}ms</td>
-                            <td className="py-2 text-red-500 text-xs">{check.error || '-'}</td>
+                            <td className="py-2">{Number(check.response_time_ms)}ms</td>
+                            <td className="py-2">{Number(check.status_code) || '-'}</td>
+                            <td className="py-2 text-red-500 text-xs">{check.error_message || '-'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -647,7 +815,7 @@ const UrlMonitor: React.FC = () => {
               </>
             )}
 
-            {urlStatus.history.length === 0 && urlStatus.currentStatus === 'checking' && (
+            {monitor.recent_checks.length === 0 && monitor.current_status === 'checking' && (
               <div className="text-center py-4 text-gray-500">
                 <div className="flex items-center justify-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
@@ -656,7 +824,7 @@ const UrlMonitor: React.FC = () => {
               </div>
             )}
 
-            {urlStatus.history.length === 0 && urlStatus.currentStatus !== 'checking' && (
+            {monitor.recent_checks.length === 0 && monitor.current_status !== 'checking' && (
               <div className="text-center py-4 text-gray-500">
                 No history yet. Click "Check" to perform the first check.
               </div>
@@ -665,7 +833,7 @@ const UrlMonitor: React.FC = () => {
         ))}
       </div>
 
-      {urlStatuses.length === 0 && (
+      {urlMonitors.length === 0 && !loading && (
         <div className="text-center py-12 bg-[#191919] shadow-sm border">
           <div className="text-gray-400 mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
