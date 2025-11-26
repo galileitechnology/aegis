@@ -1,6 +1,6 @@
 'use client';
 
-import ('./xy-theme.css');
+import './xy-theme.css';
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { Tab } from '@/components/tabs/browser-tabs';
 import { Background,ReactFlow,ReactFlowProvider,useNodesState,useEdgesState,addEdge,Controls } from '@xyflow/react';

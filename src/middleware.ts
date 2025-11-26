@@ -6,11 +6,6 @@ export function middleware(req: NextRequest) {
   
   const loginPage = req.nextUrl.pathname === "/";
   const dashboardPage = req.nextUrl.pathname.startsWith("/dashboard");
-  const chatPage = req.nextUrl.pathname.startsWith("/chat");
-
-  if (!authCookie && (dashboardPage || chatPage)) {
-    return NextResponse.redirect(new URL("/", req.url));
-  }
 
   if (authCookie && loginPage) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
@@ -20,5 +15,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*", "/chat/:path*"],
+  matcher: ["/", "/dashboard/:path*"],
 };

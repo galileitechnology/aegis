@@ -15,7 +15,7 @@ export default function Page() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setLoading(true);
+    setLoading(false);
 
     const data = new FormData(event.target as HTMLFormElement);
     const result = await loginAction(data);
@@ -31,7 +31,7 @@ export default function Page() {
     } else {
       toast.success(result.message);
     }
-    setLoading(true);
+    setLoading(false);
     router.push("/dashboard");
   };
   return (

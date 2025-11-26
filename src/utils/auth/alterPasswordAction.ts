@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import { hashSync } from "bcrypt-ts";
+import { hashSync } from "bcryptjs";
 import { Message } from "@/types/message";
 
 export async function alterPasswordAction(
@@ -45,10 +45,6 @@ export async function alterPasswordAction(
     await db.user.update({
       where: { id: userId },
       data: { password: hashedPassword },
-    });
-
-    await db.passwordResetToken.deleteMany({
-      where: { userId },
     });
 
     return { success: true, message: "Senha alterada com sucesso!" };

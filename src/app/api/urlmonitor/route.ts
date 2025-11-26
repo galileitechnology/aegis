@@ -16,7 +16,6 @@ export async function GET(request: NextRequest) {
     const monitors = result.rows.map(row => ({
       ...row,
       recent_checks: row.recent_checks || [],
-      // Convert string numbers to actual numbers
       uptime_percentage: parseFloat(row.uptime_percentage) || 0,
       total_checks: parseInt(row.total_checks) || 0,
       successful_checks: parseInt(row.successful_checks) || 0,
@@ -50,14 +49,14 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `, [
       url, 
-      name || null, 
+      name, 
       check_interval_seconds || 60,
       'checking',
       true,
       0,
       0,
       0,
-      JSON.stringify([]) // Ensure this is a JSON string
+      JSON.stringify([])
     ]);
     
     const monitor = {

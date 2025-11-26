@@ -15,7 +15,7 @@ interface UrlMonitor {
   total_checks: number;
   successful_checks: number;
   uptime_percentage: number;
-  recent_checks: UrlCheck[]; // This will be stored as JSONB in the database
+  recent_checks: UrlCheck[];
   last_checked_at?: Date;
   created_at?: Date;
   updated_at?: Date;
@@ -31,6 +31,7 @@ interface UrlCheck {
 
 const UrlMonitor: React.FC = () => {
   const [urlInput, setUrlInput] = useState('');
+  const [nameInput, setNameInput] = useState('');
   const [urlMonitors, setUrlMonitors] = useState<UrlMonitor[]>([]);
   const [isMonitoring, setIsMonitoring] = useState(true);
   const [checkInterval, setCheckInterval] = useState(30000);
@@ -173,6 +174,7 @@ const UrlMonitor: React.FC = () => {
           return {
             success: true,
             response_time_ms: Date.now() - fetchStartTime,
+            status_code: 200, // Assume 200 for no-cors since we can't read the actual status
             method: 'no-cors'
           };
         } catch {
@@ -199,9 +201,17 @@ const UrlMonitor: React.FC = () => {
               method: 'allorigins'
             };
           }
-          return { success: false, method: 'allorigins' };
+          return { 
+            success: false, 
+            method: 'allorigins',
+            status_code: 0 // Provide a default status_code
+          };
         } catch {
-          return { success: false, method: 'allorigins' };
+          return { 
+            success: false, 
+            method: 'allorigins',
+            status_code: 0 // Provide a default status_code
+          };
         }
       }
     ];
@@ -214,7 +224,7 @@ const UrlMonitor: React.FC = () => {
           return {
             status: 'up',
             response_time_ms: result.response_time_ms,
-            status_code: result.status_code
+            status_code: result.status_code // Now TypeScript knows this exists
           };
         }
       } catch (error) {
@@ -380,6 +390,7 @@ const UrlMonitor: React.FC = () => {
 
   const addUrl = async () => {
     const trimmedUrl = urlInput.trim();
+    const trimmedName = nameInput.trim();
     if (!trimmedUrl) return;
 
     if (!validateUrl(trimmedUrl)) {
@@ -395,11 +406,13 @@ const UrlMonitor: React.FC = () => {
     try {
       const response = await axios.post('/api/urlmonitor', {
         url: trimmedUrl,
+        name: trimmedName || null,
         check_interval_seconds: checkInterval / 1000,
       });
 
       const newUrlMonitor = response.data;
       setUrlMonitors(prev => [...prev, newUrlMonitor]);
+      setNameInput('');
       setUrlInput('');
 
       // Perform initial check
@@ -546,19 +559,28 @@ const UrlMonitor: React.FC = () => {
         <p className="text-[#fff]">Monitor your websites and APIs in real-time</p>
         {isMonitoring && (
           <div className="flex items-center gap-2 mt-2 text-green-600">
-            <div className="w-2 h-2 bg-green-500 animate-pulse"></div>
+            <div className="w-2 h-2 rounded bg-green-500 animate-pulse"></div>
             <span className="text-sm">Live monitoring active - checking every {checkInterval / 1000}s</span>
           </div>
         )}
       </div>
 
       <div className="bg-[#191919] shadow-sm border p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
           <div>
             <label htmlFor="urlInput" className="block text-sm font-medium text-[#fff] mb-2">
               Add URL to Monitor
             </label>
             <div className="flex gap-2">
+              <input
+                id="nameInput"
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="URL name"
+                className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
               <input
                 id="urlInput"
                 type="text"
@@ -570,7 +592,7 @@ const UrlMonitor: React.FC = () => {
               />
               <button
                 onClick={addUrl}
-                className="px-4 py-2 cursor-pointer bg-[#5200ff] hover:bg-[#5230ff] text-white transition-colors"
+                className="p-2 w-fit cursor-pointer bg-[#5200ff] hover:bg-[#5230ff] text-white transition-colors"
               >
                 Add URL
               </button>
@@ -681,12 +703,13 @@ const UrlMonitor: React.FC = () => {
 
       <div className="grid gap-6">
         {urlMonitors.map((monitor) => (
-          <div key={monitor.id || monitor.url} className="bg-[#191919] shadow-sm border p-6">
+          <div key={monitor.id || monitor.url || monitor.name} className="bg-[#191919] shadow-sm border p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3 flex-1">
                 <div className={`w-3 h-3 rounded-full ${getStatusColor(monitor.current_status)}`} />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg break-all">{monitor.url}</h3>
+                  <h3 className="font-semibold text-lg break-all">{monitor.name}</h3>
+                  <h3 className="text-[#dcdcdc] break-all">{monitor.url}</h3>
                   <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                   <span className={`font-medium ${
                     monitor.current_status === 'up' ? 'text-green-600' :
@@ -707,7 +730,7 @@ const UrlMonitor: React.FC = () => {
                     </span>
                   )}
                   {!monitor.is_monitoring_active && (
-                    <span className="text-xs text-yellow-500 bg-yellow-100 px-2 py-1 rounded">
+                    <span className="text-xs text-black bg-yellow-500 px-2 py-1">
                       PAUSED
                     </span>
                   )}
@@ -727,8 +750,8 @@ const UrlMonitor: React.FC = () => {
                   onClick={() => toggleUrlMonitoring(monitor.url)}
                   className={`px-3 py-1 text-white text-sm transition-colors border-1 border-[#505050] cursor-pointer ${
                     monitor.is_monitoring_active 
-                      ? 'bg-[#5200ff] hover:bg-[#5230ff]' 
-                      : 'bg-[#191919] hover:bg-[#5200ff]'
+                      ? 'bg-[red] hover:bg-[#ff4c4c]' 
+                      : 'bg-[#191919] hover:bg-[#11db11]'
                   }`}
                 >
                   {monitor.is_monitoring_active ? 'Pause' : 'Resume'}

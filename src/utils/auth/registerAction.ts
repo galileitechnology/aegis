@@ -3,7 +3,7 @@
 import { Message } from "@/types/message";
 import { User } from "@/types/user";
 import db from "@/lib/db";
-import { hashSync } from "bcrypt-ts";
+import { hashSync } from "bcryptjs";
 
 export default async function registerAction(
   formData: FormData,

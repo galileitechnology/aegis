@@ -108,6 +108,7 @@ NodeHeaderActions.displayName = "NodeHeaderActions";
 
 export type NodeHeaderActionProps = ButtonProps & {
   label: string;
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
 };
 
 /**
