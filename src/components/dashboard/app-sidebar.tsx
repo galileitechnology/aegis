@@ -74,7 +74,7 @@ const items = [
   },
   {
     title: "Watcher",
-    url: "/docking",
+    url: "/watcher",
     icon: TbRadar2,
   },
   {
