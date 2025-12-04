@@ -1,132 +1,215 @@
 // src/scripts/simple-monitor.ts
-import { Pool } from 'pg';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log('Script directory:', __dirname);
-
-// Load environment variables from the correct location
-// Since this file is in src/scripts, and .env is in src/
-const envPath = path.join(__dirname, '../.env'); // Go up one level from scripts to src
-console.log('Looking for .env at:', envPath);
-
+// Load environment variables
+const envPath = path.join(__dirname, '../.env');
 dotenv.config({ path: envPath });
 
-// Debug: Show what DATABASE_URL was loaded
-console.log('DATABASE_URL loaded:', 
-  process.env.DATABASE_URL ? 
-    process.env.DATABASE_URL.replace(/:([^:@]+)@/, ':****@') : 
-    'NOT FOUND'
-);
+// Use the same base URL as your Next.js app
+const BASE_URL = process.env.BASE_URL || 'http://localhost:9999';
+const MAX_RETRIES = 10;
+const RETRY_DELAY = 2000; // 2 seconds
 
-// Also try .env.local if it exists
-const envLocalPath = path.join(__dirname, '../.env.local');
-if (fs.existsSync(envLocalPath)) {
-  console.log('Found .env.local, loading it too...');
-  dotenv.config({ path: envLocalPath });
-  console.log('DATABASE_URL after .env.local:', 
-    process.env.DATABASE_URL ? 
-      process.env.DATABASE_URL.replace(/:([^:@]+)@/, ':****@') : 
-      'STILL NOT FOUND'
-  );
-}
+console.log('🚀 URL Monitor starting...');
+console.log('Base URL:', BASE_URL);
 
-// Check if DATABASE_URL is now available
-if (!process.env.DATABASE_URL) {
-  console.error('❌ ERROR: DATABASE_URL is still not set!');
-  console.error('Current directory:', __dirname);
-  console.error('Available .env files in src/:');
-  
-  try {
-    const files = fs.readdirSync(path.join(__dirname, '..'));
-    const envFiles = files.filter(f => f.startsWith('.env'));
-    console.error('Found:', envFiles);
-  } catch (err: any) {
-    console.error('Could not read directory:', err.message);
-  }
-  
-  console.error('\nPlease ensure DATABASE_URL is set in src/.env');
-  process.exit(1);
-}
-
-console.log('✅ Database connection string found');
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
-
-async function checkAll() {
-  console.log(`[${new Date().toISOString()}] Checking URLs...`);
-  
-  const { rows } = await pool.query(
-    "SELECT * FROM url_monitor WHERE is_monitoring_active = true"
-  );
-  
-  for (const monitor of rows) {
-    await checkOne(monitor);
-    await sleep(1000); // Wait 1 second between checks
-  }
-  
-  console.log('Done!');
-}
-
-async function checkOne(monitor: any) {
-  try {
-    const start = Date.now();
-    const response = await axios.head(monitor.url, { timeout: 10000 });
-    const time = Date.now() - start;
-    
-    const isUp = response.status < 400;
-    
-    await pool.query(
-      `UPDATE url_monitor SET 
-        current_status = $1,
-        last_status_code = $2,
-        last_response_time_ms = $3,
-        last_checked_at = NOW()
-       WHERE id = $4`,
-      [isUp ? 'up' : 'down', response.status, time, monitor.id]
-    );
-    
-    console.log(`✓ ${monitor.url}: ${response.status} (${time}ms)`);
-  } catch (error) {
-    await pool.query(
-      `UPDATE url_monitor SET 
-        current_status = 'error',
-        last_checked_at = NOW()
-       WHERE id = $1`,
-      [monitor.id]
-    );
-    
-    console.log(`✗ ${monitor.url}: ERROR`);
-  }
-}
-
+// Helper function to wait
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// Wait for server to be ready
+async function waitForServer() {
+  console.log('⏳ Waiting for Next.js server to be ready...');
+  
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await axios.get(`${BASE_URL}/api/urlmonitor`, {
+        timeout: 5000,
+      });
+      console.log(`✅ Server is ready! (attempt ${attempt}/${MAX_RETRIES})`);
+      return true;
+    } catch (error: any) {
+      if (attempt < MAX_RETRIES) {
+        console.log(`   Server not ready, waiting ${RETRY_DELAY / 1000}s... (attempt ${attempt}/${MAX_RETRIES})`);
+        await sleep(RETRY_DELAY);
+      } else {
+        console.error(`❌ Server never became ready after ${MAX_RETRIES} attempts`);
+        console.error('Last error:', error.message);
+        return false;
+      }
+    }
+  }
+  return false;
+}
+
+async function checkAll() {
+  console.log(`\n[${new Date().toISOString()}] 🔍 Checking URLs...`);
+  
+  try {
+    // Get all monitors from API
+    const response = await axios.get(`${BASE_URL}/api/urlmonitor`, {
+      timeout: 15000,
+    });
+    const monitors = response.data;
+    
+    const activeMonitors = monitors.filter((m: any) => m.is_monitoring_active);
+    
+    console.log(`📊 Found ${activeMonitors.length} active monitor(s) out of ${monitors.length} total`);
+    
+    for (const monitor of activeMonitors) {
+      await checkOne(monitor);
+      await sleep(2000); // Wait 2 seconds between checks
+    }
+    
+    console.log(`✅ Check completed at ${new Date().toISOString()}`);
+  } catch (error: any) {
+    console.error('❌ Error in checkAll:', error.message);
+  }
+}
+
+async function checkOne(monitor: any) {
+  console.log(`\n  Checking: ${monitor.url} (ID: ${monitor.id})`);
+  
+  try {
+    // Mark as checking first
+    await axios.put(`${BASE_URL}/api/urlmonitor?id=${monitor.id}`, {
+      current_status: 'checking',
+      updated_at: new Date().toISOString(),
+    });
+    
+    // Call the check API endpoint (server-side)
+    const checkResponse = await axios.post(`${BASE_URL}/api/urlmonitor/check`, {
+      url: monitor.url,
+    }, {
+      timeout: 10000,
+    });
+    
+    const checkResult = checkResponse.data;
+    
+    // Get existing recent checks
+    const recentChecks = monitor.recent_checks || [];
+    
+    // Create new check entry
+    const newCheck = {
+      timestamp: new Date().toISOString(),
+      status: checkResult.status,
+      response_time_ms: checkResult.response_time_ms,
+      status_code: checkResult.status_code,
+      error_message: checkResult.error_message,
+    };
+    
+    const updatedRecentChecks = [...recentChecks, newCheck].slice(-50);
+    
+    // Calculate uptime
+    const upCount = updatedRecentChecks.filter((check: any) => check.status === 'up').length;
+    const uptimePercentage = updatedRecentChecks.length > 0 ? 
+      (upCount / updatedRecentChecks.length) * 100 : 0;
+    
+    const totalChecks = (monitor.total_checks || 0) + 1;
+    const successfulChecks = (monitor.successful_checks || 0) + 
+      (checkResult.status === 'up' ? 1 : 0);
+    
+    // Update the monitor
+    const updateData = {
+      current_status: checkResult.status,
+      last_status_code: checkResult.status_code,
+      last_response_time_ms: checkResult.response_time_ms,
+      last_error_message: checkResult.error_message,
+      last_checked_at: new Date().toISOString(),
+      total_checks: totalChecks,
+      successful_checks: successfulChecks,
+      uptime_percentage: uptimePercentage,
+      recent_checks: updatedRecentChecks,
+    };
+    
+    await axios.put(`${BASE_URL}/api/urlmonitor?id=${monitor.id}`, updateData, {
+      timeout: 10000,
+    });
+    
+    console.log(`    ${checkResult.status === 'up' ? '✅' : checkResult.status === 'down' ? '⚠️' : '❌'} Status: ${checkResult.status}${checkResult.status_code ? ` (${checkResult.status_code})` : ''}${checkResult.response_time_ms ? ` ${checkResult.response_time_ms}ms` : ''}`);
+    
+  } catch (error: any) {
+    console.error(`    ❌ Check failed: ${error.message}`);
+    
+    // Handle error
+    const recentChecks = monitor.recent_checks || [];
+    const totalChecks = (monitor.total_checks || 0) + 1;
+    
+    const errorCheck = {
+      timestamp: new Date().toISOString(),
+      status: 'error',
+      error_message: error.message?.substring(0, 255),
+    };
+    
+    const updatedRecentChecks = [...recentChecks, errorCheck].slice(-50);
+    
+    const errorData = {
+      current_status: 'error',
+      last_error_message: error.message?.substring(0, 255),
+      last_checked_at: new Date().toISOString(),
+      total_checks: totalChecks,
+      recent_checks: updatedRecentChecks,
+    };
+    
+    try {
+      await axios.put(`${BASE_URL}/api/urlmonitor?id=${monitor.id}`, errorData, {
+        timeout: 5000,
+      });
+    } catch (apiError:any) {
+      console.error('    Failed to save error to database:', apiError.message);
+    }
+  }
+}
+
+// Main execution
+async function main() {
+  // Wait for server to be ready
+  if (!await waitForServer()) {
+    console.log('\n❌ Exiting monitor...');
+    process.exit(1);
+  }
+  
+  console.log('\n✅ Server connection established!');
+  
+  // Run initial check
+  await checkAll();
+  
+  // Schedule periodic checks (every 5 minutes)
+  const CHECK_INTERVAL = 300000; // 5 minutes
+  setInterval(checkAll, CHECK_INTERVAL);
+  
+  console.log(`\n⏰ Monitor started successfully!`);
+  console.log(`   Will check URLs every ${CHECK_INTERVAL / 60000} minutes`);
+  console.log(`   Next check at: ${new Date(Date.now() + CHECK_INTERVAL).toLocaleTimeString()}`);
+  console.log('\nPress Ctrl+C to stop\n');
+}
+
 // Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('\nShutting down...');
-  await pool.end();
+process.on('SIGTERM', () => {
+  console.log('\n🛑 Received SIGTERM, shutting down...');
   process.exit(0);
 });
 
-process.on('SIGINT', async () => {
-  console.log('\nShutting down...');
-  await pool.end();
+process.on('SIGINT', () => {
+  console.log('\n🛑 Received SIGINT, shutting down...');
   process.exit(0);
 });
 
-// Run checks
-checkAll();
-setInterval(checkAll, 5 * 60 * 1000);
+// Handle unhandled rejections
+process.on('unhandledRejection', (error) => {
+  console.error('⚠️ Unhandled rejection:', error);
+});
 
-console.log('🚀 URL Monitor started. Checking every 5 minutes.');
-console.log('Press Ctrl+C to stop.\n');
+// Start the monitor
+main().catch(error => {
+  console.error('💥 Fatal error:', error);
+  process.exit(1);
+});

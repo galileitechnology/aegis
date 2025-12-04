@@ -84,12 +84,33 @@ export async function PUT(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    const updates = await request.json();
     
-    console.log('PUT request received:', { id, updates });
+    console.log('PUT request received for id:', id);
     
     if (!id) {
+      console.error('No ID provided');
       return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+    }
+    
+    // Try to parse JSON with error handling
+    let updates: any;
+    try {
+      const requestBody = await request.text();
+      
+      if (!requestBody || requestBody.trim() === '') {
+        console.error('Empty request body');
+        return NextResponse.json({ error: 'Request body is empty' }, { status: 400 });
+      }
+      
+      updates = JSON.parse(requestBody);
+      console.log('Parsed updates:', updates);
+    } catch (parseError: any) {
+      console.error('Failed to parse JSON:', parseError.message);
+      console.error('Request body that failed:', await request.text());
+      return NextResponse.json({ 
+        error: 'Invalid JSON in request body',
+        details: parseError.message 
+      }, { status: 400 });
     }
     
     // Handle JSON fields properly - convert arrays/objects to JSON strings
@@ -107,7 +128,7 @@ export async function PUT(request: NextRequest) {
     
     const values = [id, ...Object.values(processedUpdates)];
     
-    console.log('Processed SQL query values:', values);
+    console.log('SQL query values count:', values.length);
     
     const result = await pool.query(`
       UPDATE url_monitor 
@@ -135,7 +156,7 @@ export async function PUT(request: NextRequest) {
       updated_at: new Date(result.rows[0].updated_at),
     };
     
-    console.log('Update successful:', monitor.id);
+    console.log('Update successful for id:', id);
     return NextResponse.json(monitor);
   } catch (error) {
     console.error('Error updating URL monitor:', error);
