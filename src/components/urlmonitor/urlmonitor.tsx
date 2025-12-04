@@ -1,3 +1,4 @@
+"use client"
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
@@ -36,30 +37,38 @@ const UrlMonitor: React.FC = () => {
   const [isMonitoring, setIsMonitoring] = useState(true);
   const [checkInterval, setCheckInterval] = useState(30000);
   const [loading, setLoading] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(true);
   
   const urlMonitorsRef = useRef(urlMonitors);
   const isMonitoringRef = useRef(isMonitoring);
-  const checkIntervalRef = useRef(checkInterval);
+  const autoRefreshRef = useRef(autoRefresh);
 
   useEffect(() => {
     urlMonitorsRef.current = urlMonitors;
     isMonitoringRef.current = isMonitoring;
-    checkIntervalRef.current = checkInterval;
-  }, [urlMonitors, isMonitoring, checkInterval]);
+    autoRefreshRef.current = autoRefresh;
+  }, [urlMonitors, isMonitoring, autoRefresh]);
 
   // Load URL monitors from database on component mount
   useEffect(() => {
     loadUrlMonitors();
+    
+    // Set up auto-refresh interval to sync with background monitoring
+    const refreshInterval = setInterval(() => {
+      if (autoRefreshRef.current) {
+        loadUrlMonitors();
+      }
+    }, 10000); // Refresh every 10 seconds
+    
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const loadUrlMonitors = async () => {
     try {
-      setLoading(true);
       const response = await axios.get('/api/urlmonitor');
       setUrlMonitors(response.data);
     } catch (error) {
       console.error('Error loading URL monitors:', error);
-      alert('Failed to load URL monitors from database');
     } finally {
       setLoading(false);
     }
@@ -99,151 +108,25 @@ const UrlMonitor: React.FC = () => {
     return statusTexts[statusCode] || 'Unknown Status';
   };
 
-  const checkUrl = useCallback(async (url: string): Promise<{
-    status: 'up' | 'down' | 'error';
-    response_time_ms?: number;
-    status_code?: number;
-    error_message?: string;
-  }> => {
-    const startTime = Date.now();
-    
-    try {
-      // Strategy 1: Try direct request first (bypass CORS when possible)
-      const directStartTime = Date.now();
-      const directResponse = await axios.get(url, {
-        timeout: 10000,
-        validateStatus: () => true,
-      });
-      
-      const directResponseTime = Date.now() - directStartTime;
-      const isUp = directResponse.status >= 200 && directResponse.status < 300;
-      
-      // Additional check: if we get 200 but the response is from a proxy error page
-      const content = directResponse.data?.toString() || '';
-      const isLikelyProxyError = 
-        content.includes('CORS') || 
-        content.includes('cors') || 
-        content.includes('proxy') ||
-        content.includes('Origin') ||
-        content.includes('cross-origin') ||
-        content.length < 100; // Very short responses might be error pages
-      
-      if (isUp && !isLikelyProxyError) {
-        return {
-          status: 'up',
-          response_time_ms: directResponseTime,
-          status_code: directResponse.status
-        };
-      }
-      
-      // If direct request failed or seems like a proxy error, try alternative methods
-    } catch (directError) {
-      // Direct request failed, continue to proxy methods
-    }
-
-    // Strategy 2: Try multiple detection methods
-    const detectionMethods = [
-      // Method 1: HEAD request (less likely to trigger CORS)
-      async () => {
-        try {
-          const headStartTime = Date.now();
-          const response = await axios.head(url, {
-            timeout: 8000,
-            validateStatus: () => true,
-          });
-          return {
-            success: response.status >= 200 && response.status < 300,
-            response_time_ms: Date.now() - headStartTime,
-            status_code: response.status,
-            method: 'HEAD'
-          };
-        } catch {
-          return { success: false, method: 'HEAD' };
-        }
-      },
-      
-      // Method 2: Fetch with no-cors to at least detect network connectivity
-      async () => {
-        try {
-          const fetchStartTime = Date.now();
-          await fetch(url, { 
-            method: 'HEAD',
-            mode: 'no-cors',
-            cache: 'no-cache'
-          });
-          return {
-            success: true,
-            response_time_ms: Date.now() - fetchStartTime,
-            status_code: 200, // Assume 200 for no-cors since we can't read the actual status
-            method: 'no-cors'
-          };
-        } catch {
-          return { success: false, method: 'no-cors' };
-        }
-      },
-      
-      // Method 3: Try with a reliable CORS proxy that passes through status codes
-      async () => {
-        try {
-          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-          const proxyStartTime = Date.now();
-          const response = await axios.get(proxyUrl, {
-            timeout: 10000,
-          });
-          
-          // AllOrigins returns the actual status code in the response
-          const actualStatus = response.data?.status?.http_code;
-          if (actualStatus) {
-            return {
-              success: actualStatus >= 200 && actualStatus < 300,
-              response_time_ms: Date.now() - proxyStartTime,
-              status_code: actualStatus,
-              method: 'allorigins'
-            };
-          }
-          return { 
-            success: false, 
-            method: 'allorigins',
-            status_code: 0 // Provide a default status_code
-          };
-        } catch {
-          return { 
-            success: false, 
-            method: 'allorigins',
-            status_code: 0 // Provide a default status_code
-          };
-        }
-      }
-    ];
-
-    // Try all detection methods
-    for (const method of detectionMethods) {
-      try {
-        const result = await method();
-        if (result.success) {
-          return {
-            status: 'up',
-            response_time_ms: result.response_time_ms,
-            status_code: result.status_code // Now TypeScript knows this exists
-          };
-        }
-      } catch (error) {
-        continue;
-      }
-    }
-
-    // If all methods fail, consider it down
-    const responseTime = Date.now() - startTime;
-    return {
-      status: 'down',
-      response_time_ms: responseTime,
-      error_message: 'All connection methods failed - Site appears to be down'
-    };
-  }, []);
-
+  // Simple client-side check for manual checking
   const checkSingleUrl = useCallback(async (url: string) => {
+    const monitorToUpdate = urlMonitorsRef.current.find(m => m.url === url);
+    if (!monitorToUpdate?.id) return;
+
     try {
-      const checkResult = await checkUrl(url);
+      // Update status to checking
+      setUrlMonitors(prev => 
+        prev.map(monitor => 
+          monitor.url === url 
+            ? { ...monitor, current_status: 'checking' }
+            : monitor
+        )
+      );
+
+      // Call server action to check URL
+      const response = await axios.post('/api/urlmonitor/check', { url });
+      const checkResult = response.data;
+
       const newCheck: UrlCheck = {
         timestamp: new Date(),
         status: checkResult.status,
@@ -252,141 +135,120 @@ const UrlMonitor: React.FC = () => {
         error_message: checkResult.error_message
       };
 
-      // Find the monitor to update
-      const monitorToUpdate = urlMonitorsRef.current.find(m => m.url === url);
-      if (!monitorToUpdate || !monitorToUpdate.id) return;
-
-      const newRecentChecks = [...monitorToUpdate.recent_checks, newCheck].slice(-50);
-      const upCount = newRecentChecks.filter(check => check.status === 'up').length;
-      const uptimePercentage = newRecentChecks.length > 0 ? 
-        (upCount / newRecentChecks.length) * 100 : 0;
-
-      const totalChecks = monitorToUpdate.total_checks + 1;
-      const successfulChecks = monitorToUpdate.successful_checks + (checkResult.status === 'up' ? 1 : 0);
-
+      // Update monitor with check result
       const updatedMonitor = {
         current_status: checkResult.status,
         last_status_code: checkResult.status_code,
         last_response_time_ms: checkResult.response_time_ms,
         last_error_message: checkResult.error_message,
         last_checked_at: new Date(),
-        total_checks: totalChecks,
-        successful_checks: successfulChecks,
-        uptime_percentage: uptimePercentage,
-        recent_checks: newRecentChecks,
       };
 
       // Update in database
       await axios.put(`/api/urlmonitor?id=${monitorToUpdate.id}`, updatedMonitor);
 
-      // Update local state
-      setUrlMonitors(prev => 
-        prev.map(monitor => {
-          if (monitor.url === url) {
-            return {
-              ...monitor,
-              ...updatedMonitor,
-              updated_at: new Date()
-            };
-          }
-          return monitor;
-        })
-      );
+      // Reload monitors to get updated data
+      loadUrlMonitors();
+
     } catch (error) {
       console.error(`Error checking URL ${url}:`, error);
       
-      // Find the monitor to update
-      const monitorToUpdate = urlMonitorsRef.current.find(m => m.url === url);
-      if (!monitorToUpdate || !monitorToUpdate.id) return;
-
-      const errorUpdate = {
-        current_status: 'error' as const,
-        last_checked_at: new Date(),
-        last_error_message: 'Check failed - possible network issue',
-      };
-
-      // Update in database
-      await axios.put(`/api/urlmonitor?id=${monitorToUpdate.id}`, errorUpdate);
-
-      // Update local state
       setUrlMonitors(prev => 
         prev.map(monitor => 
           monitor.url === url 
             ? { 
                 ...monitor, 
-                ...errorUpdate,
-                updated_at: new Date()
+                current_status: 'error',
+                last_error_message: 'Check failed - possible network issue',
               }
             : monitor
         )
       );
     }
-  }, [checkUrl]);
+  }, []);
 
-  // Monitoring system
+  // Manual monitoring system (only for when user is on page)
   const monitoringRef = useRef<NodeJS.Timeout | null>(null);
 
-  const startMonitoring = useCallback(() => {
+  const startManualMonitoring = useCallback(() => {
     if (monitoringRef.current) {
       clearInterval(monitoringRef.current);
     }
 
-    const performCheck = async () => {
+    const performManualCheck = async () => {
       const currentMonitors = urlMonitorsRef.current;
       if (currentMonitors.length === 0) return;
 
-      // Update checking status for all URLs
-      setUrlMonitors(prev => prev.map(monitor => ({
-        ...monitor,
-        current_status: 'checking' as const
-      })));
+      // Only check active monitors
+      const activeMonitors = currentMonitors.filter(monitor => 
+        monitor.is_monitoring_active
+      );
 
-      // Check all URLs in parallel with better error handling
-      const checkPromises = currentMonitors
-        .filter(monitor => monitor.is_monitoring_active)
-        .map(async (monitor) => {
-          try {
-            await checkSingleUrl(monitor.url);
-          } catch (error) {
-            console.error(`Failed to check ${monitor.url}:`, error);
-          }
-        });
+      if (activeMonitors.length === 0) return;
 
-      await Promise.allSettled(checkPromises);
+      // Update checking status for active URLs
+      setUrlMonitors(prev => prev.map(monitor => 
+        monitor.is_monitoring_active 
+          ? { ...monitor, current_status: 'checking' }
+          : monitor
+      ));
+
+      // Check all active URLs sequentially to avoid rate limiting
+      for (const monitor of activeMonitors) {
+        await checkSingleUrl(monitor.url);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Delay between checks
+      }
     };
 
     // Initial check
-    performCheck();
+    performManualCheck();
 
-    // Set up interval
-    monitoringRef.current = setInterval(performCheck, checkIntervalRef.current);
-  }, [checkSingleUrl]);
+    // Set up interval for manual monitoring
+    monitoringRef.current = setInterval(performManualCheck, checkInterval);
+  }, [checkInterval, checkSingleUrl]);
 
-  const stopMonitoring = useCallback(() => {
+  const stopManualMonitoring = useCallback(() => {
     if (monitoringRef.current) {
       clearInterval(monitoringRef.current);
       monitoringRef.current = null;
     }
   }, []);
 
-  // Main monitoring effect
+  // Manual monitoring effect
   useEffect(() => {
     if (isMonitoring && urlMonitors.length > 0) {
-      startMonitoring();
+      startManualMonitoring();
     } else {
-      stopMonitoring();
+      stopManualMonitoring();
     }
 
     return () => {
-      stopMonitoring();
+      stopManualMonitoring();
     };
-  }, [isMonitoring, urlMonitors.length, startMonitoring, stopMonitoring]);
+  }, [isMonitoring, urlMonitors.length, startManualMonitoring, stopManualMonitoring]);
 
-  useEffect(() => {
-    if (isMonitoring && urlMonitors.length > 0) {
-      startMonitoring();
+  // Trigger background monitoring manually
+  const triggerBackgroundCheck = async () => {
+    try {
+      const response = await fetch('/api/monitor/cron', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        alert('Background monitoring triggered successfully');
+        // Reload monitors after a delay to allow background job to complete
+        setTimeout(() => loadUrlMonitors(), 2000);
+      } else {
+        alert('Failed to trigger background monitoring');
+      }
+    } catch (error) {
+      console.error('Error triggering background check:', error);
+      alert('Error triggering background monitoring');
     }
-  }, [checkInterval, isMonitoring, startMonitoring]);
+  };
 
   const addUrl = async () => {
     const trimmedUrl = urlInput.trim();
@@ -410,8 +272,7 @@ const UrlMonitor: React.FC = () => {
         check_interval_seconds: checkInterval / 1000,
       });
 
-      const newUrlMonitor = response.data;
-      setUrlMonitors(prev => [...prev, newUrlMonitor]);
+      setUrlMonitors(prev => [...prev, response.data]);
       setNameInput('');
       setUrlInput('');
 
@@ -473,14 +334,15 @@ const UrlMonitor: React.FC = () => {
     
     setUrlMonitors(prev => prev.map(monitor => ({
       ...monitor,
-      current_status: 'checking' as const
+      current_status: 'checking'
     })));
 
-    await Promise.allSettled(
-      urlMonitors
-        .filter(monitor => monitor.is_monitoring_active)
-        .map(monitor => checkSingleUrl(monitor.url))
-    );
+    // Check active URLs
+    const activeMonitors = urlMonitors.filter(monitor => monitor.is_monitoring_active);
+    for (const monitor of activeMonitors) {
+      await checkSingleUrl(monitor.url);
+      await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -530,7 +392,6 @@ const UrlMonitor: React.FC = () => {
                 uptime_percentage: 0,
                 total_checks: 0,
                 successful_checks: 0,
-                updated_at: new Date()
               }
             : monitor
         )
@@ -557,12 +418,18 @@ const UrlMonitor: React.FC = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">URL Monitor</h1>
         <p className="text-[#fff]">Monitor your websites and APIs in real-time</p>
-        {isMonitoring && (
-          <div className="flex items-center gap-2 mt-2 text-green-600">
-            <div className="w-2 h-2 rounded bg-green-500 animate-pulse"></div>
-            <span className="text-sm">Live monitoring active - checking every {checkInterval / 1000}s</span>
+        <div className="flex items-center gap-4 mt-2">
+          {isMonitoring && (
+            <div className="flex items-center gap-2 text-green-600">
+              <div className="w-2 h-2 rounded bg-green-500 animate-pulse"></div>
+              <span className="text-sm">Manual monitoring active - checking every {checkInterval / 1000}s</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-blue-600">
+            <div className="w-2 h-2 rounded bg-blue-500"></div>
+            <span className="text-sm">Background monitoring: Active (cron)</span>
           </div>
-        )}
+        </div>
       </div>
 
       <div className="bg-[#191919] shadow-sm border p-6 mb-6">
@@ -615,7 +482,7 @@ const UrlMonitor: React.FC = () => {
                     : 'bg-[#191919] hover:bg-[#5200ff] cursor-pointer border-1 border-[#505050]'
                 } text-white`}
               >
-                {isMonitoring ? 'Stop Monitoring' : 'Start Monitoring'}
+                {isMonitoring ? 'Stop Manual' : 'Start Manual'}
               </button>
               
               <button
@@ -625,13 +492,35 @@ const UrlMonitor: React.FC = () => {
               >
                 Check Now
               </button>
+              
+              <button
+                onClick={triggerBackgroundCheck}
+                className="cursor-pointer px-4 py-2 text-white bg-green-600 hover:bg-green-700 transition-colors"
+              >
+                Trigger Background
+              </button>
+              
+              <button
+                onClick={() => {
+                  setAutoRefresh(!autoRefresh);
+                  if (!autoRefresh) loadUrlMonitors();
+                }}
+                className={`cursor-pointer px-4 py-2 transition-colors border-1 border-[#505050] ${
+                  autoRefresh ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#191919] hover:bg-[#5200ff]'
+                } text-white`}
+              >
+                Auto-Refresh: {autoRefresh ? 'ON' : 'OFF'}
+              </button>
             </div>
+            <p className="text-xs text-gray-400 mt-1">
+              Manual: User-session only | Background: Always runs via cron
+            </p>
           </div>
         </div>
 
         <div className="mb-4">
           <label htmlFor="interval" className="block text-sm font-medium text-[#fff] mb-2">
-            Check Interval: {checkInterval / 1000} seconds
+            Manual Check Interval: {checkInterval / 1000} seconds
           </label>
           <input
             id="interval"
@@ -672,9 +561,6 @@ const UrlMonitor: React.FC = () => {
               <span>Checking</span>
             </div>
           </div>
-          <p className="text-xs text-gray-400 mt-2">
-            Uses multiple detection methods to avoid false positives from CORS proxies
-          </p>
         </div>
 
         {urlMonitors.length > 0 && (
@@ -711,30 +597,30 @@ const UrlMonitor: React.FC = () => {
                   <h3 className="font-semibold text-lg break-all">{monitor.name}</h3>
                   <h3 className="text-[#dcdcdc] break-all">{monitor.url}</h3>
                   <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                  <span className={`font-medium ${
-                    monitor.current_status === 'up' ? 'text-green-600' :
-                    monitor.current_status === 'down' ? 'text-yellow-600' :
-                    monitor.current_status === 'error' ? 'text-red-600' :
-                    'text-blue-600'
-                  }`}>
-                    {getUrlStatusText(monitor.current_status)}
-                  </span>
-                  <span className='text-gray-400'>Uptime: {Number(monitor.uptime_percentage).toFixed(1)}%</span>
-                  <span className='text-gray-400'>Checks: {Number(monitor.total_checks)}</span>
-                  {monitor.last_response_time_ms && (
-                    <span className='text-gray-400'>Response: {Number(monitor.last_response_time_ms)}ms</span>
-                  )}
-                  {monitor.last_checked_at && (
-                    <span className="text-xs text-gray-400">
-                      Last: {new Date(monitor.last_checked_at).toLocaleTimeString()}
+                    <span className={`font-medium ${
+                      monitor.current_status === 'up' ? 'text-green-600' :
+                      monitor.current_status === 'down' ? 'text-yellow-600' :
+                      monitor.current_status === 'error' ? 'text-red-600' :
+                      'text-blue-600'
+                    }`}>
+                      {getUrlStatusText(monitor.current_status)}
                     </span>
-                  )}
-                  {!monitor.is_monitoring_active && (
-                    <span className="text-xs text-black bg-yellow-500 px-2 py-1">
-                      PAUSED
-                    </span>
-                  )}
-                </div>
+                    <span className='text-gray-400'>Uptime: {Number(monitor.uptime_percentage).toFixed(1)}%</span>
+                    <span className='text-gray-400'>Checks: {Number(monitor.total_checks)}</span>
+                    {monitor.last_response_time_ms && (
+                      <span className='text-gray-400'>Response: {Number(monitor.last_response_time_ms)}ms</span>
+                    )}
+                    {monitor.last_checked_at && (
+                      <span className="text-xs text-gray-400">
+                        Last: {new Date(monitor.last_checked_at).toLocaleTimeString()}
+                      </span>
+                    )}
+                    {!monitor.is_monitoring_active && (
+                      <span className="text-xs text-black bg-yellow-500 px-2 py-1">
+                        PAUSED
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               
@@ -778,18 +664,18 @@ const UrlMonitor: React.FC = () => {
                   <div className="flex items-end gap-1 h-8">
                     {monitor.recent_checks.slice(-20).map((check, index) => (
                       <div
-                      key={index}
-                      className={`flex-1 ${
-                        check.status === 'up' ? 'bg-green-400' :
-                        check.status === 'down' ? 'bg-yellow-400' :
-                        'bg-red-400'
-                      } transition-all hover:opacity-80`}
-                      style={{ 
-                        height: check.response_time_ms 
-                          ? `${Math.min(Number(check.response_time_ms) / 50, 100)}%` 
-                          : '20%' 
-                      }}
-                      title={`${new Date(check.timestamp).toLocaleTimeString()} - ${check.status} - ${Number(check.response_time_ms)}ms - ${check.error_message || 'No error'}`}
+                        key={index}
+                        className={`flex-1 ${
+                          check.status === 'up' ? 'bg-green-400' :
+                          check.status === 'down' ? 'bg-yellow-400' :
+                          'bg-red-400'
+                        } transition-all hover:opacity-80`}
+                        style={{ 
+                          height: check.response_time_ms 
+                            ? `${Math.min(Number(check.response_time_ms) / 50, 100)}%` 
+                            : '20%' 
+                        }}
+                        title={`${new Date(check.timestamp).toLocaleTimeString()} - ${check.status} - ${Number(check.response_time_ms)}ms - ${check.error_message || 'No error'}`}
                       />
                     ))}
                   </div>
@@ -865,6 +751,12 @@ const UrlMonitor: React.FC = () => {
           </div>
           <h3 className="text-lg font-medium text-[#fff] mb-2">No URLs Added</h3>
           <p className="text-gray-500 mb-4">Add URLs above to start monitoring their status</p>
+          <button
+            onClick={triggerBackgroundCheck}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
+          >
+            Test Background Monitoring
+          </button>
         </div>
       )}
     </div>
