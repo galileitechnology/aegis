@@ -494,11 +494,11 @@ const UrlMonitor: React.FC = () => {
 
   const getFilterButtonColor = (filter: StatusFilter) => {
     switch (filter) {
-      case 'up': return 'bg-green-100 text-green-800 border-green-300';
-      case 'down': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'error': return 'bg-red-100 text-red-800 border-red-300';
-      case 'checking': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'all': return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'up': return 'bg-green-600 text-gray-100 border-green-300';
+      case 'down': return 'bg-yellow-600 text-gray-100 border-yellow-300';
+      case 'error': return 'bg-red-600 text-gray-100 border-red-300';
+      case 'checking': return 'bg-blue-600 text-gray-100 border-blue-300';
+      case 'all': return 'bg-[transparent] text-gray-100 border-gray-300';
     }
   };
 
@@ -522,9 +522,9 @@ const UrlMonitor: React.FC = () => {
 
   const getPausedFilterButtonColor = (filter: PausedFilter) => {
     switch (filter) {
-      case 'active': return 'bg-green-100 text-green-800 border-green-300';
-      case 'paused': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'all': return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'active': return 'bg-green-600 text-grey-100 border-green-300';
+      case 'paused': return 'bg-yellow-600 text-yellow-100 border-yellow-300';
+      case 'all': return 'bg-[transparent] text-gray-100 border-gray-300';
     }
   };
 
@@ -721,7 +721,7 @@ const UrlMonitor: React.FC = () => {
               <div className="relative inline-block" ref={filterRef}>
                 <button
                   onClick={() => setIsFilterOpen(!isFilterOpen)}
-                  className={`inline-flex items-center gap-2 px-4 py-2 border ${getFilterButtonColor(statusFilter)} hover:opacity-90 transition-opacity`}
+                  className={`inline-flex items-center gap-2 cursor-pointer px-4 py-2 border ${getFilterButtonColor(statusFilter)} hover:opacity-90 transition-opacity`}
                 >
                   <span>{getFilterLabel(statusFilter)}</span>
                   <span className="ml-2">▾</span>
@@ -735,7 +735,7 @@ const UrlMonitor: React.FC = () => {
                           setStatusFilter('all');
                           setIsFilterOpen(false);
                         }}
-                        className={`flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-gray-100 ${statusFilter === 'all' ? 'bg-[#131313]' : ''}`}
+                        className={`flex items-center gap-2 w-full px-4 py-2 text-left cursor-pointer hover:bg-[#101010] ${statusFilter === 'all' ? 'bg-[#131313]' : ''}`}
                       >
                         <span>All Statuses</span>
                         <span className="ml-auto text-sm text-gray-500">({urlMonitors.length})</span>
@@ -746,7 +746,7 @@ const UrlMonitor: React.FC = () => {
                           setStatusFilter('up');
                           setIsFilterOpen(false);
                         }}
-                        className={`flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-green-50 ${statusFilter === 'up' ? 'bg-green-50' : ''}`}
+                        className={`flex items-center gap-2 w-full px-4 py-2 cursor-pointer hover:bg-[#101010] text-left ${statusFilter === 'up' ? 'bg-[#202020]' : ''}`}
                       >
                         <span className="text-green-700">Up</span>
                         <span className="ml-auto text-sm text-green-600">
@@ -759,7 +759,7 @@ const UrlMonitor: React.FC = () => {
                           setStatusFilter('down');
                           setIsFilterOpen(false);
                         }}
-                        className={`flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-yellow-50 ${statusFilter === 'down' ? 'bg-yellow-50' : ''}`}
+                        className={`flex items-center gap-2 w-full px-4 py-2 cursor-pointer hover:bg-[#101010] text-left ${statusFilter === 'down' ? 'bg-[#202020]' : ''}`}
                       >
                         <span className="text-yellow-700">Down</span>
                         <span className="ml-auto text-sm text-yellow-600">
@@ -772,7 +772,7 @@ const UrlMonitor: React.FC = () => {
                           setStatusFilter('error');
                           setIsFilterOpen(false);
                         }}
-                        className={`flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-red-50 ${statusFilter === 'error' ? 'bg-red-50' : ''}`}
+                        className={`flex items-center gap-2 w-full px-4 py-2 text-left cursor-pointer hover:bg-[#101010] ${statusFilter === 'error' ? 'bg-[#202020]' : ''}`}
                       >
                         <span className="text-red-700">Error</span>
                         <span className="ml-auto text-sm text-red-600">
@@ -785,7 +785,7 @@ const UrlMonitor: React.FC = () => {
                           setStatusFilter('checking');
                           setIsFilterOpen(false);
                         }}
-                        className={`flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-blue-50 ${statusFilter === 'checking' ? 'bg-blue-50' : ''}`}
+                        className={`flex items-center gap-2 w-full px-4 py-2 text-left cursor-pointer hover:bg-[#101010] ${statusFilter === 'checking' ? 'bg-[#202020]' : ''}`}
                       >
                         <span className="text-blue-700">Checking</span>
                         <span className="ml-auto text-sm text-blue-600">
@@ -804,7 +804,7 @@ const UrlMonitor: React.FC = () => {
               <div className="relative inline-block" ref={pausedFilterRef}>
                 <button
                   onClick={() => setIsPausedFilterOpen(!isPausedFilterOpen)}
-                  className={`inline-flex items-center gap-2 px-4 py-2 border ${getPausedFilterButtonColor(pausedFilter)} hover:opacity-90 transition-opacity`}
+                  className={`inline-flex items-center cursor-pointer gap-2 px-4 py-2 border ${getPausedFilterButtonColor(pausedFilter)} hover:opacity-90 transition-opacity`}
                 >
                   <span>{getPausedFilterLabel(pausedFilter)}</span>
                   <span className="ml-2">▾</span>
@@ -818,7 +818,7 @@ const UrlMonitor: React.FC = () => {
                           setPausedFilter('all');
                           setIsPausedFilterOpen(false);
                         }}
-                        className={`flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-gray-100 ${pausedFilter === 'all' ? 'bg-[#131313]' : ''}`}
+                        className={`flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-[#151515] ${pausedFilter === 'all' ? 'bg-[#131313]' : ''}`}
                       >
                         <span>All (Active & Paused)</span>
                         <span className="ml-auto text-sm text-gray-500">
@@ -831,7 +831,7 @@ const UrlMonitor: React.FC = () => {
                           setPausedFilter('active');
                           setIsPausedFilterOpen(false);
                         }}
-                        className={`flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-green-50 ${pausedFilter === 'active' ? 'bg-green-50' : ''}`}
+                        className={`flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-[#151515] ${pausedFilter === 'active' ? 'bg-[#202020]' : ''}`}
                       >
                         <span className="text-green-700">Active Only</span>
                         <span className="ml-auto text-sm text-green-600">
@@ -844,7 +844,7 @@ const UrlMonitor: React.FC = () => {
                           setPausedFilter('paused');
                           setIsPausedFilterOpen(false);
                         }}
-                        className={`flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-yellow-50 ${pausedFilter === 'paused' ? 'bg-yellow-50' : ''}`}
+                        className={`flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-[#151515] ${pausedFilter === 'paused' ? 'bg-yellow-50' : ''}`}
                       >
                         <span className="text-yellow-700">Paused Only</span>
                         <span className="ml-auto text-sm text-yellow-600">
@@ -1064,7 +1064,7 @@ const UrlMonitor: React.FC = () => {
               {monitor.recent_checks.length > 0 && (
                 <>
                   <div className="mb-3">
-                    <h4 className="font-medium text-[#fff] mb-2">Recent History (Last 50 checks)</h4>
+                    <h4 className="font-medium text-[#fff] mb-2">Recent History (Last 20 checks)</h4>
                     <div className="flex items-end gap-1 h-8">
                       {monitor.recent_checks.slice(-20).map((check, index) => (
                         <div
