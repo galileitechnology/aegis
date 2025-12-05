@@ -586,18 +586,18 @@ const UrlMonitor: React.FC = () => {
 
   // Toggle all history tables visibility
   const toggleAllHistoryTables = () => {
-    const allVisible = Object.values(showHistoryTable).every(v => v === true);
+    const allVisible = Object.values(showHistoryTable).every(v => v === false);
     const newState: {[key: string]: boolean} = {};
     
     if (allVisible) {
       // Hide all
       urlMonitors.forEach(monitor => {
-        newState[monitor.url] = false;
+        newState[monitor.url] = true;
       });
     } else {
       // Show all
       urlMonitors.forEach(monitor => {
-        newState[monitor.url] = true;
+        newState[monitor.url] = false;
       });
     }
     
@@ -711,7 +711,7 @@ const UrlMonitor: React.FC = () => {
         </div>
 
         {/* Enhanced Filter Section */}
-        <div className="mb-6 bg-[red]">
+        <div className="mb-6 bg-[transparent]">
           <h3 className="font-medium text-[#fff] mb-4">Filters</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -887,7 +887,7 @@ const UrlMonitor: React.FC = () => {
                   onClick={toggleAllHistoryTables}
                   className="px-3 py-2 bg-[#191919] hover:bg-[#5200ff] text-white text-sm transition-colors border-1 border-[#505050] cursor-pointer"
                 >
-                  {Object.values(showHistoryTable).every(v => v === true) ? 'Hide All Tables' : 'Show All Tables'}
+                  {Object.values(showHistoryTable).every(v => v === false) ? 'Show All Tables' : 'Hide All Tables'}
                 </button>
               </div>
             </div>
@@ -1016,7 +1016,7 @@ const UrlMonitor: React.FC = () => {
                       </span>
                       <span className='text-gray-400'>Uptime: {Number(monitor.uptime_percentage).toFixed(1)}%</span>
                       <span className='text-gray-400'>Checks: {Number(monitor.total_checks)}</span>
-                      {monitor.last_response_time_ms && (
+                      {monitor.last_response_time_ms !== null && monitor.last_response_time_ms !== undefined && (
                         <span className='text-gray-400'>Response: {Number(monitor.last_response_time_ms)}ms</span>
                       )}
                       {monitor.last_checked_at && (
@@ -1091,7 +1091,6 @@ const UrlMonitor: React.FC = () => {
                       onClick={() => toggleHistoryTable(monitor.url)}
                       className="flex items-center gap-2 px-3 py-2 bg-[#191919] hover:bg-[#5200ff] text-white text-sm transition-colors border-1 border-[#505050] cursor-pointer"
                     >
-                      <span>{showHistoryTable[monitor.url] ? '▼' : '▶'}</span>
                       <span>
                         Detailed History {showHistoryTable[monitor.url] ? '(Hide)' : '(Show)'}
                       </span>
@@ -1131,7 +1130,7 @@ const UrlMonitor: React.FC = () => {
                                     {check.status.toUpperCase()}
                                   </span>
                                 </td>
-                                <td className="py-2 px-2">{Number(check.response_time_ms)}ms</td>
+                                <td className="py-2 px-2">{check.response_time_ms ? `${Number(check.response_time_ms)}ms` : '-'}</td>
                                 <td className="py-2 px-2">{Number(check.status_code) || '-'}</td>
                                 <td className="py-2 px-2 text-red-500 text-xs">{check.error_message || '-'}</td>
                               </tr>

@@ -85,14 +85,26 @@ async function checkOne(monitor: any) {
       updated_at: new Date().toISOString(),
     });
     
+    console.log(`    Calling check API for: ${monitor.url}`);
+    
     // Call the check API endpoint (server-side)
     const checkResponse = await axios.post(`${BASE_URL}/api/urlmonitor/check`, {
       url: monitor.url,
     }, {
       timeout: 10000,
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
     
     const checkResult = checkResponse.data;
+    
+    console.log(`    API Response:`, JSON.stringify(checkResult, null, 2));
+    
+    // Ensure response_time_ms is a number
+    const responseTime = typeof checkResult.response_time_ms === 'number' 
+      ? checkResult.response_time_ms 
+      : null;
     
     // Get existing recent checks
     const recentChecks = monitor.recent_checks || [];
@@ -101,10 +113,12 @@ async function checkOne(monitor: any) {
     const newCheck = {
       timestamp: new Date().toISOString(),
       status: checkResult.status,
-      response_time_ms: checkResult.response_time_ms,
+      response_time_ms: responseTime,
       status_code: checkResult.status_code,
       error_message: checkResult.error_message,
     };
+    
+    console.log(`    New Check Data:`, JSON.stringify(newCheck, null, 2));
     
     const updatedRecentChecks = [...recentChecks, newCheck].slice(-50);
     
@@ -120,9 +134,9 @@ async function checkOne(monitor: any) {
     // Update the monitor
     const updateData = {
       current_status: checkResult.status,
-      last_status_code: checkResult.status_code,
-      last_response_time_ms: checkResult.response_time_ms,
-      last_error_message: checkResult.error_message,
+      last_status_code: checkResult.status_code || null,
+      last_response_time_ms: responseTime,
+      last_error_message: checkResult.error_message || null,
       last_checked_at: new Date().toISOString(),
       total_checks: totalChecks,
       successful_checks: successfulChecks,
@@ -134,10 +148,17 @@ async function checkOne(monitor: any) {
       timeout: 10000,
     });
     
-    console.log(`    ${checkResult.status === 'up' ? '✅' : checkResult.status === 'down' ? '⚠️' : '❌'} Status: ${checkResult.status}${checkResult.status_code ? ` (${checkResult.status_code})` : ''}${checkResult.response_time_ms ? ` ${checkResult.response_time_ms}ms` : ''}`);
+    console.log(`    ${checkResult.status === 'up' ? '✅' : checkResult.status === 'down' ? '⚠️' : '❌'} Status: ${checkResult.status}${checkResult.status_code ? ` (${checkResult.status_code})` : ''}${responseTime ? ` ${responseTime}ms` : ''}`);
     
   } catch (error: any) {
-    console.error(`    ❌ Check failed: ${error.message}`);
+    console.error(`    ❌ Check failed:`, error);
+    console.error(`    Error details:`, {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      url: error.config?.url,
+      data: error.config?.data,
+    });
     
     // Handle error
     const recentChecks = monitor.recent_checks || [];
@@ -146,14 +167,14 @@ async function checkOne(monitor: any) {
     const errorCheck = {
       timestamp: new Date().toISOString(),
       status: 'error',
-      error_message: error.message?.substring(0, 255),
+      error_message: error.message?.substring(0, 255) || 'Unknown error',
     };
     
     const updatedRecentChecks = [...recentChecks, errorCheck].slice(-50);
     
     const errorData = {
       current_status: 'error',
-      last_error_message: error.message?.substring(0, 255),
+      last_error_message: error.message?.substring(0, 255) || 'Unknown error',
       last_checked_at: new Date().toISOString(),
       total_checks: totalChecks,
       recent_checks: updatedRecentChecks,
@@ -163,7 +184,7 @@ async function checkOne(monitor: any) {
       await axios.put(`${BASE_URL}/api/urlmonitor?id=${monitor.id}`, errorData, {
         timeout: 5000,
       });
-    } catch (apiError:any) {
+    } catch (apiError: any) {
       console.error('    Failed to save error to database:', apiError.message);
     }
   }

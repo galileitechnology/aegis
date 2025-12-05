@@ -1,3 +1,5 @@
+// Update your /src/actions/urlmonitor.ts
+
 "use server"
 
 import { Pool } from 'pg';
@@ -17,16 +19,46 @@ export async function checkUrlStatus(url: string): Promise<{
   const startTime = Date.now();
   
   try {
-    // Try HEAD request first (less data)
-    const response = await fetch(url, {
-      method: 'HEAD',
-      signal: AbortSignal.timeout(10000),
-      headers: {
-        'User-Agent': 'URL-Monitor/1.0'
-      }
-    });
+    // Try multiple methods
+    let response: Response;
+    let responseTime: number;
     
-    const responseTime = Date.now() - startTime;
+    // Method 1: Try HEAD request
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      response = await fetch(url, {
+        method: 'HEAD',
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'URL-Monitor/1.0',
+          'Accept': '*/*'
+        },
+        redirect: 'follow'
+      });
+      
+      clearTimeout(timeoutId);
+      responseTime = Date.now() - startTime;
+      
+    } catch (headError) {
+      // Method 2: Try GET request if HEAD fails
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      response = await fetch(url, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'URL-Monitor/1.0',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        },
+        redirect: 'follow'
+      });
+      
+      clearTimeout(timeoutId);
+      responseTime = Date.now() - startTime;
+    }
     
     if (response.ok) {
       return {
@@ -41,11 +73,23 @@ export async function checkUrlStatus(url: string): Promise<{
         status_code: response.status
       };
     }
-  } catch (error) {
+  } catch (error: any) {
+    const responseTime = Date.now() - startTime;
+    let errorMessage = error.message || 'Unknown error';
+    
+    // Handle specific error types
+    if (error.name === 'AbortError') {
+      errorMessage = 'Request timeout (10 seconds)';
+    } else if (error.code === 'ENOTFOUND') {
+      errorMessage = 'DNS lookup failed';
+    } else if (error.code === 'ECONNREFUSED') {
+      errorMessage = 'Connection refused';
+    }
+    
     return {
       status: 'error',
-      response_time_ms: Date.now() - startTime,
-      error_message: error instanceof Error ? error.message : 'Unknown error'
+      response_time_ms: responseTime,
+      error_message: errorMessage.substring(0, 255)
     };
   }
 }

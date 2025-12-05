@@ -81,87 +81,67 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const id = searchParams.get('id');
+  
+  if (!id) {
+    return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+  }
+  
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    
+    const updates = await request.json();
     console.log('PUT request received for id:', id);
+    console.log('Parsed updates:', updates);
     
-    if (!id) {
-      console.error('No ID provided');
-      return NextResponse.json({ error: 'ID is required' }, { status: 400 });
-    }
+    // Remove updated_at from updates since we'll set it manually
+    const { updated_at, ...filteredUpdates } = updates;
     
-    // Try to parse JSON with error handling
-    let updates: any;
-    try {
-      const requestBody = await request.text();
-      
-      if (!requestBody || requestBody.trim() === '') {
-        console.error('Empty request body');
-        return NextResponse.json({ error: 'Request body is empty' }, { status: 400 });
+    // Build dynamic SET clause
+    const setClauses = [];
+    const values: any[] = [parseInt(id)];
+    let paramIndex = 2;
+    
+    // Handle each update field
+    for (const [key, value] of Object.entries(filteredUpdates)) {
+      // Handle special cases for JSON fields
+      if (key === 'recent_checks' && Array.isArray(value)) {
+        setClauses.push(`${key} = $${paramIndex}::jsonb`);
+        values.push(JSON.stringify(value));
+      } else {
+        setClauses.push(`${key} = $${paramIndex}`);
+        values.push(value);
       }
-      
-      updates = JSON.parse(requestBody);
-      console.log('Parsed updates:', updates);
-    } catch (parseError: any) {
-      console.error('Failed to parse JSON:', parseError.message);
-      console.error('Request body that failed:', await request.text());
-      return NextResponse.json({ 
-        error: 'Invalid JSON in request body',
-        details: parseError.message 
-      }, { status: 400 });
+      paramIndex++;
     }
     
-    // Handle JSON fields properly - convert arrays/objects to JSON strings
-    const processedUpdates = { ...updates };
+    // Always update the updated_at timestamp
+    setClauses.push('updated_at = CURRENT_TIMESTAMP');
     
-    // Convert recent_checks array to JSON string if it exists
-    if (processedUpdates.recent_checks && Array.isArray(processedUpdates.recent_checks)) {
-      processedUpdates.recent_checks = JSON.stringify(processedUpdates.recent_checks);
+    if (setClauses.length === 1) { // Only updated_at
+      return NextResponse.json({ error: 'No valid updates provided' }, { status: 400 });
     }
     
-    // Build dynamic update query
-    const setClause = Object.keys(processedUpdates)
-      .map((key, index) => `${key} = $${index + 2}`)
-      .join(', ');
-    
-    const values = [id, ...Object.values(processedUpdates)];
-    
+    const setClause = setClauses.join(', ');
     console.log('SQL query values count:', values.length);
     
     const result = await pool.query(`
       UPDATE url_monitor 
-      SET ${setClause}, updated_at = CURRENT_TIMESTAMP
+      SET ${setClause}
       WHERE id = $1
       RETURNING *
     `, values);
     
-    if (result.rows.length === 0) {
-      console.log('URL monitor not found with id:', id);
+    if (result.rowCount === 0) {
       return NextResponse.json({ error: 'URL monitor not found' }, { status: 404 });
     }
     
-    const monitor = {
-      ...result.rows[0],
-      recent_checks: result.rows[0].recent_checks || [],
-      uptime_percentage: parseFloat(result.rows[0].uptime_percentage) || 0,
-      total_checks: parseInt(result.rows[0].total_checks) || 0,
-      successful_checks: parseInt(result.rows[0].successful_checks) || 0,
-      last_response_time_ms: result.rows[0].last_response_time_ms ? parseInt(result.rows[0].last_response_time_ms) : undefined,
-      last_status_code: result.rows[0].last_status_code ? parseInt(result.rows[0].last_status_code) : undefined,
-      check_interval_seconds: parseInt(result.rows[0].check_interval_seconds) || 60,
-      last_checked_at: result.rows[0].last_checked_at ? new Date(result.rows[0].last_checked_at) : null,
-      created_at: new Date(result.rows[0].created_at),
-      updated_at: new Date(result.rows[0].updated_at),
-    };
-    
     console.log('Update successful for id:', id);
-    return NextResponse.json(monitor);
+    return NextResponse.json(result.rows[0]);
+    
   } catch (error) {
     console.error('Error updating URL monitor:', error);
     return NextResponse.json({ 
-      error: 'Internal server error',
+      error: 'Failed to update URL monitor',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
